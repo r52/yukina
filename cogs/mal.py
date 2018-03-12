@@ -36,9 +36,9 @@ class MAL:
             self.creds = spice_api.init_auth(
                 config['MAL']['user'], config['MAL']['pass'])
         except ValueError:
-            print(f"MAL: Failed to log into MAL")
+            print("MAL: Failed to log into MAL")
         else:
-            print(f"MAL: Logged into MAL as {self.senpai}.")
+            print("MAL: Logged into MAL as {}.".format(self.senpai))
             self.loggedin = True
 
         req = urllib.request.urlopen(
