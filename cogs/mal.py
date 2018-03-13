@@ -2,6 +2,7 @@ import configparser
 import spice_api
 import urllib.request
 import urllib.parse
+import urllib.error
 import json
 from bs4 import BeautifulSoup
 import discord
@@ -41,6 +42,9 @@ class MAL:
             print("MAL: Logged into MAL as {}.".format(self.senpai))
             self.loggedin = True
 
+        self._update_cookie()
+
+    def _update_cookie(self):
         req = urllib.request.urlopen(
             "https://myanimelist.net/animelist/" + self.senpai)
         self.cookies = req.getheader('Set-Cookie')
@@ -134,12 +138,19 @@ class MAL:
             if not match:
                 return await ctx.send("Senpai hasn't watched this anime yet!")
 
-            data = urllib.parse.urlencode(
-                {"color": "1", "type": "anime", "memId": self.memid, "csrf_token": self.csrf, "id": entry.id}).encode()
-            req = urllib.request.Request(self.api, data=data, headers={
-                                         "Cookie": self.cookies})
-            resp = urllib.request.urlopen(req)
-            rmsg = json.loads(resp.read())
+            resp = None
+            while not resp:
+                try:
+                    data = urllib.parse.urlencode(
+                        {"color": "1", "type": "anime", "memId": self.memid, "csrf_token": self.csrf, "id": entry.id}).encode()
+                    req = urllib.request.Request(self.api, data=data, headers={
+                                                 "Cookie": self.cookies})
+                    resp = urllib.request.urlopen(req)
+                except urllib.error.HTTPError:
+                    self._update_cookie()
+
+            rstr = resp.read().decode()
+            rmsg = json.loads(rstr)
             chtml = rmsg['html']
             comments = find_between(chtml, "Comments: ", "&nbsp;<br>")
             comments = BeautifulSoup(comments, "lxml").text
