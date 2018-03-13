@@ -154,11 +154,9 @@ class MAL:
             chtml = rmsg['html']
             comments = find_between(chtml, "Comments: ", "&nbsp;<br>")
             comments = BeautifulSoup(comments, "lxml").text
+
             if len(comments) == 0:
                 return await ctx.send("Senpai hasn't reviewed this anime!")
-
-            comments = (comments[:2045] +
-                        '..') if len(comments) > 2045 else comments
 
             # flip status because of spice api bug
             status = int(match.status)
@@ -167,15 +165,25 @@ class MAL:
             elif status == 3:
                 status = 4
 
+            title = "Senpai's Review of {.title}".format(match)
             url = 'https://myanimelist.net/anime/' + '{.id}/'.format(match)
-            embed = discord.Embed(title="Senpai's Review of {.title}".format(
-                match), url=url, description=comments)
+
+            split = False
+            while len(comments) > 2044:
+                part = (comments[:2044] + '...')
+                comments = '...' + comments[2044:]
+                pembed = discord.Embed(title=title, url=url, description=part)
+                await ctx.send(embed=pembed)
+                if not split:
+                    title = title + ' (cont)'
+                    split = True
+
+            embed = discord.Embed(title=title, url=url, description=comments)
             embed.add_field(name='Type', value=entry.anime_type)
             embed.add_field(name='Episodes Watched', value=match.episodes)
             embed.add_field(name='Final Score',
                             value=':star: ' + match.score + '/10 ' + tscore[int(match.score) - 1])
-            embed.add_field(
-                name='Status', value=spice_api.get_status(status))
+            embed.add_field(name='Status', value=spice_api.get_status(status))
             embed.set_image(url=entry.image_url)
             await ctx.send(embed=embed)
 
