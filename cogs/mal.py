@@ -156,7 +156,7 @@ class MAL:
             comments = BeautifulSoup(comments, "lxml").text
 
             if len(comments) == 0:
-                return await ctx.send("Senpai hasn't reviewed this anime!")
+                comments = "Senpai hasn't reviewed this anime!"
 
             # flip status because of spice api bug
             status = int(match.status)
