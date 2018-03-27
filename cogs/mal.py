@@ -5,6 +5,7 @@ import urllib.parse
 import urllib.error
 import json
 from bs4 import BeautifulSoup
+import asyncio
 import discord
 from discord.ext import commands
 
@@ -61,23 +62,69 @@ class MAL:
             return None
 
         def entry_check(m):
-            return m.content.isdigit() and m.channel == ctx.channel and m.author == ctx.author
+            return (m.content.isdigit() or m.content == '..' or m.content == '...') and m.channel == ctx.channel and m.author == ctx.author
 
+        pagesize = 15
         entry = None
         results = spice_api.search(title, medium, self.creds)
         if len(results) == 0:
-            await ctx.send('No search results found!')
+            await ctx.send('I couldn\'t find anything with that name!')
             return None
-        elif len(results) > 1:
-            reslist = '\n'.join('[{}] {.title}'.format(*k)
-                                for k in enumerate(results, 1))
-            res_embed = discord.Embed(
-                title='Which one are you talking about?', description=reslist)
-            res_msg = await ctx.send(embed=res_embed)
-            reply = await self.bot.wait_for('message', check=entry_check)
-            entry = results[int(reply.content) - 1]
-            await reply.delete()
-            await res_msg.delete()
+        elif len(results) > 1 and len(results) <= pagesize:
+            page = '\n'.join('[{}] {.title}'.format(*k)
+                             for k in enumerate(results, 1))
+            page_embed = discord.Embed(
+                title='Which one are you talking about?', description=page)
+            page_msg = await ctx.send(embed=page_embed)
+            try:
+                reply = await self.bot.wait_for('message', check=entry_check, timeout=30.0)
+                entry = results[int(reply.content) - 1]
+                await reply.delete()
+            except asyncio.TimeoutError:
+                await page_msg.delete()
+            else:
+                await page_msg.delete()
+        elif len(results) > pagesize:
+            enum = list(enumerate(results, 1))
+            curpage = 0
+            # Write page 1
+            page = '\n'.join('[{}] {.title}'.format(*k)
+                             for k in enum[curpage*pagesize:(curpage+1)*pagesize])
+            page += '\n[...] Next Page'
+            page_embed = discord.Embed(
+                title='Which one are you talking about?', description=page)
+            page_msg = await ctx.send(embed=page_embed)
+
+            while not entry:
+                try:
+                    reply = await self.bot.wait_for('message', check=entry_check, timeout=30.0)
+                    if reply.content == '..':
+                        if curpage > 0:
+                            curpage -= 1
+                    elif reply.content == '...':
+                        if len(enum[(curpage+1)*pagesize:]) > 0:
+                            curpage += 1
+                    else:
+                        entry = results[int(reply.content) - 1]
+                        await page_msg.delete()
+
+                    await reply.delete()
+                except asyncio.TimeoutError:
+                    await page_msg.delete()
+                    break
+
+                if not entry:
+                    page = '\n'.join('[{}] {.title}'.format(*k)
+                                     for k in enum[curpage*pagesize:(curpage+1)*pagesize])
+
+                    if curpage > 0:
+                        page += '\n[..] Previous Page'
+
+                    if len(enum[(curpage+1)*pagesize:]) > 0:
+                        page += '\n[...] Next Page'
+
+                    page_embed.description = page
+                    await page_msg.edit(embed=page_embed)
         else:
             entry = results[0]
 
@@ -136,7 +183,7 @@ class MAL:
                 slist.medium_list['dropped']
             match = next((x for x in fullist if x.id == entry.id), None)
             if not match:
-                return await ctx.send("Senpai hasn't watched this anime yet!")
+                return await ctx.send("Senpai hasn't watched {.title} yet!".format(entry))
 
             resp = None
             while not resp:
