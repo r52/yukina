@@ -3,3 +3,4 @@ beautifulsoup4>=4.6.0
 discord-rewrite>=1.0.0
 spice-api>=1.0.4
 youtube_dl>=2018.4.25
+pynacl>=1.2.1

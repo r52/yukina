@@ -86,7 +86,8 @@ class Music:
     async def hello(self, ctx):
         """Hello :)"""
 
-        await self.play(ctx, url="https://www.youtube.com/watch?v=uJuQ8DzXOP0")
+        player = await YTDLSource.from_url("https://www.youtube.com/watch?v=uJuQ8DzXOP0", loop=self.bot.loop, stream=True)
+        ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
     @play.before_invoke
     @hello.before_invoke
