@@ -86,17 +86,29 @@ class Music:
 
     @commands.command()
     async def hello(self, ctx):
-        """Hello :)"""
+        await self.clip(ctx, url="https://www.youtube.com/watch?v=uJuQ8DzXOP0")
 
+    @commands.command()
+    async def senpai(self, ctx):
+        await self.clip(ctx, url="https://www.youtube.com/watch?v=PnHi8cjulI0")
+
+    @commands.command()
+    async def fight(self, ctx):
+        await self.clip(ctx, url="https://www.youtube.com/watch?v=wimSoRKKepc")
+
+    async def clip(self, ctx, *, url):
+        """Play a short clip then immediately disconnect"""
         def finalize(e):
             print('Player error: %s' % e) if e else None
             asyncio.run_coroutine_threadsafe(ctx.voice_client.disconnect(), ctx.voice_client.loop)
 
-        player = await YTDLSource.from_url("https://www.youtube.com/watch?v=uJuQ8DzXOP0", loop=self.bot.loop, stream=True)
+        player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
         ctx.voice_client.play(player, after=finalize)
 
     @play.before_invoke
     @hello.before_invoke
+    @senpai.before_invoke
+    @fight.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
