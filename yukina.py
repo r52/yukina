@@ -4,7 +4,7 @@ from discord.ext import commands
 
 import sys, traceback
 
-initial_extensions = ['cogs.mal', 'cogs.weeb']
+initial_extensions = ['cogs.mal', 'cogs.weeb', 'cogs.music']
 
 def get_prefix(bot, message):
     prefixes = ['y.', 'senpai ']
