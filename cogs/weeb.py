@@ -17,6 +17,7 @@ class Weeb:
         else:
             await ctx.send('There are no Senpais in this server!')
 
+    @client.event
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:
             return

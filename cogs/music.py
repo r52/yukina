@@ -57,22 +57,24 @@ class Music:
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def join(self, ctx, *, channel: discord.VoiceChannel):
-        """Joins a voice channel"""
+    async def timeout_check(self, ctx):
+        """Disconnects from voice channel on inactivity"""
+        await asyncio.sleep(60)
 
-        if ctx.voice_client is not None:
-            return await ctx.voice_client.move_to(channel)
-
-        await channel.connect()
+        if not ctx.voice_client.is_playing():
+            await ctx.voice_client.disconnect()
 
     @commands.command()
     async def play(self, ctx, *, url):
         """Streams from a url (doesn't predownload)"""
 
+        def finalize(e):
+            print('Player error: %s' % e) if e else None
+            ctx.voice_client.loop.create_task(self.timeout_check(ctx))
+
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            ctx.voice_client.play(player, after=finalize)
 
         await ctx.send('Now playing: {}'.format(player.title))
 
@@ -86,8 +88,12 @@ class Music:
     async def hello(self, ctx):
         """Hello :)"""
 
+        def finalize(e):
+            print('Player error: %s' % e) if e else None
+            asyncio.run_coroutine_threadsafe(ctx.voice_client.disconnect(), ctx.voice_client.loop)
+
         player = await YTDLSource.from_url("https://www.youtube.com/watch?v=uJuQ8DzXOP0", loop=self.bot.loop, stream=True)
-        ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+        ctx.voice_client.play(player, after=finalize)
 
     @play.before_invoke
     @hello.before_invoke
