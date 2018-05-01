@@ -66,7 +66,7 @@ class Music:
 
     @commands.command()
     async def play(self, ctx, *, url):
-        """Streams from a url (doesn't predownload)"""
+        """Streams from a URL"""
 
         def finalize(e):
             print('Player error: %s' % e) if e else None
@@ -80,20 +80,28 @@ class Music:
 
     @commands.command()
     async def stop(self, ctx):
-        """Stops and disconnects the bot from voice"""
+        """Stops and disconnects from voice"""
 
         await ctx.voice_client.disconnect()
 
     @commands.command()
+    async def airhorn(self, ctx):
+        """Airhorn"""
+        await self.clip(ctx, url="https://www.youtube.com/watch?v=MAFGdHvHxpU")
+
+    @commands.command()
     async def hello(self, ctx):
+        """Hello :)"""
         await self.clip(ctx, url="https://www.youtube.com/watch?v=uJuQ8DzXOP0")
 
     @commands.command()
     async def senpai(self, ctx):
+        """Senpai!"""
         await self.clip(ctx, url="https://www.youtube.com/watch?v=PnHi8cjulI0")
 
     @commands.command()
     async def fight(self, ctx):
+        """No Senpai, this is our fight!"""
         await self.clip(ctx, url="https://www.youtube.com/watch?v=wimSoRKKepc")
 
     async def clip(self, ctx, *, url):

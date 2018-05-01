@@ -163,18 +163,21 @@ class MAL:
 
     @commands.command(name='anime', aliases=['a'])
     async def search_anime(self, ctx, *, title: str):
+        """Searches for an anime on MAL"""
         medium = spice_api.get_medium('a')
         entry = await self._search_entry(ctx, medium=medium, title=title)
         return await self._build_message(ctx, medium=medium, entry=entry)
 
     @commands.command(name='manga', aliases=['m'])
     async def search_manga(self, ctx, *, title: str):
+        """Searches for a manga on MAL"""
         medium = spice_api.get_medium('m')
         entry = await self._search_entry(ctx, medium=medium, title=title)
         return await self._build_message(ctx, medium=medium, entry=entry)
 
     @commands.command(name='review', aliases=['r'])
     async def get_review(self, ctx, *, title: str):
+        """Senpai's anime reviews"""
         medium = spice_api.get_medium('a')
         entry = await self._search_entry(ctx, medium=medium, title=title)
         if entry:
