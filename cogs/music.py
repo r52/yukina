@@ -88,12 +88,12 @@ class Music:
     @commands.command()
     async def papa(self, ctx):
         """PaPa TuTu WaWa"""
-        await self.file(ctx, query="clips/papa.opus")
+        await self.file(ctx, query="clips/papa.ogg")
 
     @commands.command()
     async def long(self, ctx):
         """Long Long Maaaaaaaaaan"""
-        await self.file(ctx, query="clips/long.opus")
+        await self.file(ctx, query="clips/long.ogg")
 
     @commands.command()
     async def airhorn(self, ctx):
