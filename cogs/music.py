@@ -86,6 +86,16 @@ class Music:
         await ctx.voice_client.disconnect()
 
     @commands.command()
+    async def papa(self, ctx):
+        """PaPa TuTu WaWa"""
+        await self.file(ctx, query="clips/papa.opus")
+
+    @commands.command()
+    async def long(self, ctx):
+        """Long Long Maaaaaaaaaan"""
+        await self.file(ctx, query="clips/long.opus")
+
+    @commands.command()
     async def airhorn(self, ctx):
         """Airhorn"""
         await self.clip(ctx, url="https://www.youtube.com/watch?v=MAFGdHvHxpU")
@@ -138,6 +148,8 @@ class Music:
     @fight.before_invoke
     @airhorn.before_invoke
     @nani.before_invoke
+    @long.before_invoke
+    @papa.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
