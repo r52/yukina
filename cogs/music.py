@@ -20,7 +20,8 @@ ytdl_format_options = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+    # bind to ipv4 since ipv6 addresses cause issues sometimes
+    'source_address': '0.0.0.0'
 }
 
 ffmpeg_options = {
@@ -92,7 +93,12 @@ class Music:
     @commands.command()
     async def hello(self, ctx):
         """Hello :)"""
-        await self.clip(ctx, url="https://www.youtube.com/watch?v=uJuQ8DzXOP0")
+        await self.file(ctx, query="clips/hello.ogg")
+
+    @commands.command()
+    async def nani(self, ctx):
+        """NANI?!?!?!?"""
+        await self.file(ctx, query="clips/nani.ogg")
 
     @commands.command()
     async def senpai(self, ctx):
@@ -104,11 +110,24 @@ class Music:
         """No Senpai, this is our fight!"""
         await self.clip(ctx, url="https://www.youtube.com/watch?v=wimSoRKKepc")
 
-    async def clip(self, ctx, *, url):
-        """Play a short clip then immediately disconnect"""
+    async def file(self, ctx, *, query):
+        """Plays a file from the local filesystem then immediately disconnect"""
+
         def finalize(e):
             print('Player error: %s' % e) if e else None
-            asyncio.run_coroutine_threadsafe(ctx.voice_client.disconnect(), ctx.voice_client.loop)
+            asyncio.run_coroutine_threadsafe(
+                ctx.voice_client.disconnect(), ctx.voice_client.loop)
+
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
+        ctx.voice_client.play(source, after=finalize)
+
+    async def clip(self, ctx, *, url):
+        """Play a short clip then immediately disconnect"""
+
+        def finalize(e):
+            print('Player error: %s' % e) if e else None
+            asyncio.run_coroutine_threadsafe(
+                ctx.voice_client.disconnect(), ctx.voice_client.loop)
 
         player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
         ctx.voice_client.play(player, after=finalize)
@@ -118,15 +137,18 @@ class Music:
     @senpai.before_invoke
     @fight.before_invoke
     @airhorn.before_invoke
+    @nani.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
             else:
                 await ctx.send("You are not connected to a voice channel.")
-                raise commands.CommandError("Author not connected to a voice channel.")
+                raise commands.CommandError(
+                    "Author not connected to a voice channel.")
         elif ctx.voice_client.is_playing():
             ctx.voice_client.stop()
+
 
 def setup(bot):
     bot.add_cog(Music(bot))
