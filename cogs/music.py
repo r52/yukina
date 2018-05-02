@@ -117,6 +117,7 @@ class Music:
     @hello.before_invoke
     @senpai.before_invoke
     @fight.before_invoke
+    @airhorn.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
