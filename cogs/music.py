@@ -62,8 +62,9 @@ class Music:
         """Disconnects from voice channel on inactivity"""
         await asyncio.sleep(60)
 
-        if not ctx.voice_client.is_playing():
-            await ctx.voice_client.disconnect()
+        if ctx.voice_client is not None:
+            if not ctx.voice_client.is_playing():
+                await ctx.voice_client.disconnect()
 
     @commands.command()
     async def play(self, ctx, *, url):
