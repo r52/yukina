@@ -1,5 +1,5 @@
 import asyncio
-
+import random
 import discord
 import youtube_dl
 
@@ -98,7 +98,9 @@ class Music:
     @commands.command()
     async def airhorn(self, ctx):
         """Airhorn"""
-        await self.clip(ctx, url="https://www.youtube.com/watch?v=MAFGdHvHxpU")
+        airhorns = ["https://www.youtube.com/watch?v=MAFGdHvHxpU",
+                    "https://www.youtube.com/watch?v=UUGlOKsJGuI"]
+        await self.clip(ctx, url=random.choice(airhorns))
 
     @commands.command()
     async def hello(self, ctx):
