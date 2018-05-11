@@ -16,9 +16,15 @@ class Weeb:
         self.autotasks = {}
 
         if config['pixiv']['user']:
-            self.pixiv = AppPixivAPI()
-            self.pixiv.login(config['pixiv']['user'], config['pixiv']['pass'])
-            print("pixiv: Logged into pixiv as {}.".format(config['pixiv']['user']))
+            self.pixiv = AppPixivAPI(timeout=10)
+            try:
+                self.pixiv.login(config['pixiv']['user'], config['pixiv']['pass'])
+            except Exception as e:
+                print("pixiv: Failed to login")
+                print("{}".format(e))
+                self.pixiv = None
+            else:
+                print("pixiv: Logged into pixiv as {}.".format(config['pixiv']['user']))
         else:
             print("pixiv: Unavailable")
 
