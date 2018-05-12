@@ -86,7 +86,7 @@ class Weeb:
         if nsfw:
             ranking_modes = ['day_r18', 'week_r18']
 
-        while not json_result or 'illusts' not in json_result:
+        while 'illusts' not in json_result:
             if not nsfw and random.getrandbits(1):
                 json_result = self.pixiv.illust_recommended('illust')
             else:
