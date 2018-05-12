@@ -86,16 +86,24 @@ class Weeb:
         if nsfw:
             ranking_modes = ['day_r18', 'week_r18']
 
-        while 'illusts' not in json_result:
-            if not nsfw and random.getrandbits(1):
-                json_result = self.pixiv.illust_recommended('illust')
-            else:
-                json_result = self.pixiv.illust_ranking(
-                    random.choice(ranking_modes))
+        while True:
+            try:
+                if not nsfw and random.getrandbits(1):
+                    json_result = self.pixiv.illust_recommended('illust')
+                else:
+                    json_result = self.pixiv.illust_ranking(
+                        random.choice(ranking_modes))
+            except Exception as e:
+                print(f"pixiv: polling failed: {e}")
+                return
 
             if 'error' in json_result:
                 # Refresh oauth
                 self._pixiv_login()
+                continue
+
+            if 'illusts' in json_result:
+                break
 
         illust = random.choice(json_result.illusts)
         await self._post_pixiv(channel, illust)
