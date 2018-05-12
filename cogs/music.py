@@ -78,7 +78,7 @@ class Music:
             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             ctx.voice_client.play(player, after=finalize)
 
-        await ctx.send('Now playing: {}'.format(player.title))
+        await ctx.send(f'Now playing: {player.title}')
 
     @commands.command()
     async def stop(self, ctx):

@@ -40,14 +40,13 @@ class MAL:
         except ValueError:
             print("MAL: Failed to log into MAL")
         else:
-            print("MAL: Logged into MAL as {}.".format(self.senpai))
+            print(f"MAL: Logged into MAL as {self.senpai}.")
             self.loggedin = True
 
         self._update_cookie()
 
     def _update_cookie(self):
-        req = urllib.request.urlopen(
-            "https://myanimelist.net/animelist/" + self.senpai)
+        req = urllib.request.urlopen(f"https://myanimelist.net/animelist/{self.senpai}")
         self.cookies = req.getheader('Set-Cookie')
 
         html = req.read()
@@ -68,11 +67,10 @@ class MAL:
         entry = None
         results = spice_api.search(title, medium, self.creds)
         if len(results) == 0:
-            await ctx.send('I couldn\'t find anything with that name!')
+            await ctx.send("I couldn't find anything with that name!")
             return None
         elif len(results) > 1 and len(results) <= pagesize:
-            page = '\n'.join('[{}] {.title}'.format(*k)
-                             for k in enumerate(results, 1))
+            page = '\n'.join(f'[{i}] {k.title}' for i,k in enumerate(results, 1))
             page_embed = discord.Embed(
                 title='Which one are you talking about?', description=page)
             page_msg = await ctx.send(embed=page_embed)
@@ -88,8 +86,7 @@ class MAL:
             enum = list(enumerate(results, 1))
             curpage = 0
             # Write page 1
-            page = '\n'.join('[{}] {.title}'.format(*k)
-                             for k in enum[curpage*pagesize:(curpage+1)*pagesize])
+            page = '\n'.join(f'[{i}] {k.title}' for i,k in enum[curpage*pagesize:(curpage+1)*pagesize])
             page += '\n[...] Next Page'
             page_embed = discord.Embed(
                 title='Which one are you talking about?', description=page)
@@ -114,8 +111,7 @@ class MAL:
                     break
 
                 if not entry:
-                    page = '\n'.join('[{}] {.title}'.format(*k)
-                                     for k in enum[curpage*pagesize:(curpage+1)*pagesize])
+                    page = '\n'.join(f'[{i}] {k.title}' for i,k in enum[curpage*pagesize:(curpage+1)*pagesize])
 
                     if curpage > 0:
                         page += '\n[..] Previous Page'
@@ -136,7 +132,7 @@ class MAL:
 
         url = 'https://myanimelist.net/'
         url += 'manga/' if medium == spice_api.tokens.Medium.MANGA else 'anime/'
-        url += '{.id}/'.format(entry)
+        url += f'{entry.id}/'
 
         embed = discord.Embed(title=entry.title, url=url)
 
@@ -186,7 +182,7 @@ class MAL:
                 slist.medium_list['dropped']
             match = next((x for x in fullist if x.id == entry.id), None)
             if not match:
-                return await ctx.send("Senpai hasn't watched {.title} yet!".format(entry))
+                return await ctx.send(f"Senpai hasn't watched {entry.title} yet!")
 
             resp = None
             while not resp:
@@ -215,8 +211,8 @@ class MAL:
             elif status == 3:
                 status = 4
 
-            title = "Senpai's Review of {.title}".format(match)
-            url = 'https://myanimelist.net/anime/' + '{.id}/'.format(match)
+            title = f"Senpai's Review of {match.title}"
+            url = f'https://myanimelist.net/anime/{match.id}/'
 
             split = False
             while len(comments) > 2044:

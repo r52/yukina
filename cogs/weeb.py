@@ -21,17 +21,17 @@ class Weeb:
                 self.pixiv.login(config['pixiv']['user'], config['pixiv']['pass'])
             except Exception as e:
                 print("pixiv: Failed to login")
-                print("{}".format(e))
+                print(f"{e}")
                 self.pixiv = None
             else:
-                print("pixiv: Logged into pixiv as {}.".format(config['pixiv']['user']))
+                print(f"pixiv: Logged into pixiv as {config['pixiv']['user']}.")
         else:
             print("pixiv: Unavailable")
 
     async def _autoimg_task(self, channel, *, timeout=30, nsfw=False):
         while True:
             await asyncio.sleep(timeout * 60)
-            print("Sending image to channel {}".format(channel.name))
+            print(f"Sending image to channel {channel.name}")
             await self._random_pixiv(channel, nsfw=nsfw)
 
     @commands.command()
@@ -59,7 +59,7 @@ class Weeb:
                 del self.autotasks[ctx.channel.id]
 
             self.autotasks[ctx.channel.id] = asyncio.get_event_loop().create_task(self._autoimg_task(ctx.channel, timeout=delay, nsfw=False))
-            await ctx.send("I will post images in this channel every {} minute(s)!".format(delay))
+            await ctx.send(f"I will post images in this channel every {delay} minute(s)!")
 
     @commands.command()
     @commands.is_nsfw()
@@ -95,10 +95,10 @@ class Weeb:
             response = self.pixiv.requests_call('GET', illust.image_urls['large'], headers={ 'Referer': 'https://app-api.pixiv.net/' }, stream=True)
             print(illust)
             img = discord.File(response.raw, os.path.basename(illust.image_urls['large']))
-            await channel.send("https://pixiv.net/i/"+str(illust.id), file=img)
+            await channel.send(f"https://pixiv.net/i/{illust.id}", file=img)
             del response
         else:
-            await channel.send("https://pixiv.net/i/"+str(illust.id))
+            await channel.send(f"https://pixiv.net/i/{illust.id}")
 
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:
