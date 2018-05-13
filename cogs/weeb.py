@@ -39,7 +39,9 @@ class Weeb:
     async def _autoimg_task(self, channel, *, timeout=30, nsfw=False):
         while True:
             await asyncio.sleep(timeout * 60)
-            await self._random_pixiv(channel, nsfw=nsfw)
+
+            async with channel.typing()
+                await self._random_pixiv(channel, nsfw=nsfw)
 
     @commands.command()
     async def image(self, ctx):
@@ -48,7 +50,8 @@ class Weeb:
             await ctx.send('Senpai has not configured pixiv yet!')
             return
 
-        await self._random_pixiv(ctx.channel)
+        async with ctx.channel.typing()
+            await self._random_pixiv(ctx.channel)
 
     @commands.command()
     async def autoimage(self, ctx, *, delay: int):
@@ -77,7 +80,8 @@ class Weeb:
             await ctx.send('Senpai has not configured pixiv yet!')
             return
 
-        await self._random_pixiv(ctx.channel, nsfw=True)
+        async with ctx.channel.typing()
+            await self._random_pixiv(ctx.channel, nsfw=True)
 
     async def _random_pixiv(self, channel, *, nsfw=False):
         ranking_modes = ['day', 'week', 'month']
