@@ -108,14 +108,14 @@ class Weeb:
         illust = random.choice(json_result.illusts)
         await self._post_pixiv(channel, illust)
 
-    async def _post_pixiv(self, channel, illust, download=False):
+    async def _post_pixiv(self, channel, illust, download=True):
         if download:
             response = self.pixiv.requests_call('GET', illust.image_urls['large'], headers={
                                                 'Referer': 'https://app-api.pixiv.net/'}, stream=True)
             print(illust)
             img = discord.File(response.raw, os.path.basename(
                 illust.image_urls['large']))
-            await channel.send(f"https://pixiv.net/i/{illust.id}", file=img)
+            await channel.send(f"<https://pixiv.net/i/{illust.id}>", file=img)
             del response
         else:
             await channel.send(f"https://pixiv.net/i/{illust.id}")
