@@ -40,7 +40,7 @@ class Weeb:
         while True:
             await asyncio.sleep(timeout * 60)
 
-            async with channel.typing()
+            async with channel.typing():
                 await self._random_pixiv(channel, nsfw=nsfw)
 
     @commands.command()
@@ -50,7 +50,7 @@ class Weeb:
             await ctx.send('Senpai has not configured pixiv yet!')
             return
 
-        async with ctx.channel.typing()
+        async with ctx.channel.typing():
             await self._random_pixiv(ctx.channel)
 
     @commands.command()
@@ -80,7 +80,7 @@ class Weeb:
             await ctx.send('Senpai has not configured pixiv yet!')
             return
 
-        async with ctx.channel.typing()
+        async with ctx.channel.typing():
             await self._random_pixiv(ctx.channel, nsfw=True)
 
     async def _random_pixiv(self, channel, *, nsfw=False):
