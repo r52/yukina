@@ -84,7 +84,7 @@ class Weeb:
             await self._random_pixiv(ctx.channel, nsfw=True)
 
     async def _random_pixiv(self, channel, *, nsfw=False):
-        ranking_modes = ['day', 'week', 'month']
+        ranking_modes = ['day', 'week']
         json_result = None
 
         if nsfw:
