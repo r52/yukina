@@ -106,19 +106,28 @@ class Weeb:
                 break
 
         illust = random.choice(json_result.illusts)
-        await self._post_pixiv(channel, illust)
+        url = None
 
-    async def _post_pixiv(self, channel, illust, download=True):
+        if len(illust.meta_pages) > 0:
+            # this is a collection/album
+            # select a random image from the collection
+            pg = random.choice(illust.meta_pages)
+            url = pg.image_urls['original']
+        else:
+            # single image
+            url = illust.meta_single_page['original_image_url']
+
+        await self._post_pixiv(channel, illust.id, url)
+
+    async def _post_pixiv(self, channel, id, url, download=True):
         if download:
-            response = self.pixiv.requests_call('GET', illust.image_urls['large'], headers={
+            response = self.pixiv.requests_call('GET', url, headers={
                                                 'Referer': 'https://app-api.pixiv.net/'}, stream=True)
-            print(illust)
-            img = discord.File(response.raw, os.path.basename(
-                illust.image_urls['large']))
-            await channel.send(f"<https://pixiv.net/i/{illust.id}>", file=img)
+            img = discord.File(response.raw, os.path.basename(url))
+            await channel.send(f"<https://pixiv.net/i/{id}>", file=img)
             del response
         else:
-            await channel.send(f"https://pixiv.net/i/{illust.id}")
+            await channel.send(f"https://pixiv.net/i/{id}")
 
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:
