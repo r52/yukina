@@ -114,6 +114,11 @@ class Music:
         await self.file(ctx, query="clips/nani.ogg")
 
     @commands.command()
+    async def hellnaw(self, ctx):
+        """Hell to the Naw"""
+        await self.file(ctx, query="clips/hellnaw.ogg")
+
+    @commands.command()
     async def senpai(self, ctx):
         """Senpai!"""
         await self.clip(ctx, url="https://www.youtube.com/watch?v=PnHi8cjulI0")
@@ -153,6 +158,7 @@ class Music:
     @nani.before_invoke
     @long.before_invoke
     @papa.before_invoke
+    @hellnaw.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
