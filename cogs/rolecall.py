@@ -37,10 +37,10 @@ class RoleCall:
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
 
-    @commands.command()
+    @commands.command(aliases=['acr'])
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
-    async def acr(self, ctx, role: str):
+    async def addcallablerole(self, ctx, role: str):
         """Adds a role to the list of callable roles"""
         rol = discord.utils.get(ctx.guild.roles, name=role)
         if not rol:
@@ -59,10 +59,10 @@ class RoleCall:
         self._save_config(ctx.guild.id, cfg)
         await ctx.send(f"The role '{role}' is now callable.")
 
-    @commands.command()
+    @commands.command(aliases=['rcr'])
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
-    async def rcr(self, ctx, role: str):
+    async def removecallablerole(self, ctx, role: str):
         """Removes a role from the list of callable roles"""
         rol = discord.utils.get(ctx.guild.roles, name=role)
         if not rol:
@@ -81,9 +81,9 @@ class RoleCall:
         self._save_config(ctx.guild.id, cfg)
         await ctx.send(f"The role '{role}' has been removed from callable roles.")
 
-    @commands.command()
+    @commands.command(aliases=['lcr'])
     @commands.guild_only()
-    async def lcr(self, ctx):
+    async def listcallableroles(self, ctx):
         """List all callable roles on this server"""
         cfg = self._load_config(ctx.guild.id)
         if 'crs' not in cfg or len(cfg['crs']) == 0:
@@ -135,7 +135,7 @@ class RoleCall:
         await ctx.message.author.remove_roles(rol, reason="y.iamnot")
         await ctx.send(f"You've been removed from '{role}'.")
 
-    @commands.command()
+    @commands.command(aliases=['c'])
     @commands.guild_only()
     @commands.has_permissions(change_nickname=True)
     @commands.cooldown(1, 10.0, commands.BucketType.guild)
@@ -158,7 +158,7 @@ class RoleCall:
         # Make role temporarily mentionable if it isn't
         temp_mention = False
         if not rol.mentionable:
-            rol.edit(mentionable=True)
+            await rol.edit(mentionable=True)
             temp_mention = True
 
         if 'msgs' not in cfg or role not in cfg['msgs']:
@@ -169,7 +169,7 @@ class RoleCall:
 
         # Reset temp toggle
         if temp_mention:
-            rol.edit(mentionable=False)
+            await rol.edit(mentionable=False)
 
     @commands.command(aliases=['scm'])
     @commands.has_permissions(manage_roles=True)
