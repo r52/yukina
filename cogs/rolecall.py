@@ -11,12 +11,12 @@ class RoleCall:
         self.bot = bot
 
     def _load_config(self, server_id: int):
-        if not config[str(server_id)]:
+        if str(server_id) not in config:
             config[str(server_id)] = {}
             return {}
 
         section = config[str(server_id)]
-        if not section['rolecall']:
+        if 'rolecall' not in section:
             return {}
 
         lne = section['rolecall']
@@ -30,7 +30,7 @@ class RoleCall:
         return cfg
 
     def _save_config(self, server_id: int, cfg):
-        if not config[str(server_id)]:
+        if str(server_id) not in config:
             config[str(server_id)] = {}
 
         config[str(server_id)]['rolecall'] = json.dumps(cfg)
