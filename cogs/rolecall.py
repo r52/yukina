@@ -49,13 +49,13 @@ class RoleCall:
 
         cfg = self._load_config(ctx.guild.id)
         if 'crs' not in cfg:
-            cfg['crs'] = set()
+            cfg['crs'] = []
 
         if role in cfg['crs']:
             await ctx.send(f"The role '{role}' is already callable.")
             return
 
-        cfg['crs'].add(role)
+        cfg['crs'].append(role)
         self._save_config(ctx.guild.id, cfg)
         await ctx.send(f"The role '{role}' is now callable.")
 
@@ -71,7 +71,7 @@ class RoleCall:
 
         cfg = self._load_config(ctx.guild.id)
         if 'crs' not in cfg:
-            cfg['crs'] = set()
+            cfg['crs'] = []
 
         if role not in cfg['crs']:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
