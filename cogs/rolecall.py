@@ -11,14 +11,15 @@ class RoleCall:
         self.bot = bot
 
     def _load_config(self, server_id: int):
+        if not config[str(server_id)]:
+            config[str(server_id)] = {}
+            return {}
+
         section = config[str(server_id)]
-        if not section:
+        if not section['rolecall']:
             return {}
 
         lne = section['rolecall']
-        if not lne:
-            return {}
-
         cfg = {}
 
         try:
@@ -29,6 +30,9 @@ class RoleCall:
         return cfg
 
     def _save_config(self, server_id: int, cfg):
+        if not config[str(server_id)]:
+            config[str(server_id)] = {}
+
         config[str(server_id)]['rolecall'] = json.dumps(cfg)
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
@@ -78,7 +82,7 @@ class RoleCall:
 
     @commands.command()
     @commands.guild_only()
-    async def lsar(self, ctx):
+    async def lcr(self, ctx):
         """List all callable roles on this server"""
         cfg = self._load_config(ctx.guild.id)
         if not cfg['crs'] or len(cfg['crs']) == 0:
