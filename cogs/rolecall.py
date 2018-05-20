@@ -42,7 +42,8 @@ class RoleCall:
     @commands.has_permissions(manage_roles=True)
     async def acr(self, ctx, role: str):
         """Adds a role to the list of callable roles"""
-        if role not in ctx.guild.roles:
+        rol = discord.utils.get(ctx.guild.roles, name=role)
+        if not rol:
             await ctx.send(f"There is no role '{role}' on this server.")
             return
 
@@ -64,7 +65,8 @@ class RoleCall:
     @commands.has_permissions(manage_roles=True)
     async def rcr(self, ctx, role: str):
         """Removes a role from the list of callable roles"""
-        if role not in ctx.guild.roles:
+        rol = discord.utils.get(ctx.guild.roles, name=role)
+        if not rol:
             await ctx.send(f"There is no role '{role}' on this server.")
             return
 
@@ -96,11 +98,12 @@ class RoleCall:
     @commands.guild_only()
     async def iam(self, ctx, role: str):
         """Add yourself to a callable role"""
-        if role not in ctx.guild.roles:
+        rol = discord.utils.get(ctx.guild.roles, name=role)
+        if not rol:
             await ctx.send(f"There is no role '{role}' on this server.")
             return
 
-        if role in ctx.message.author.roles:
+        if rol in ctx.message.author.roles:
             await ctx.send(f"You already have the role '{role}'.")
             return
 
@@ -109,18 +112,19 @@ class RoleCall:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
-        await ctx.message.author.add_roles(role, "y.iam")
+        await ctx.message.author.add_roles(rol, "y.iam")
         await ctx.send(f"You've been added to '{role}'.")
 
     @commands.command()
     @commands.guild_only()
-    async def iamnot(self, ctx):
+    async def iamnot(self, ctx, role: str):
         """Remove yourself from a callable role"""
-        if role not in ctx.guild.roles:
+        rol = discord.utils.get(ctx.guild.roles, name=role)
+        if not rol:
             await ctx.send(f"There is no role '{role}' on this server.")
             return
 
-        if role not in ctx.message.author.roles:
+        if rol not in ctx.message.author.roles:
             await ctx.send(f"You are not part of the role '{role}'.")
             return
 
@@ -129,7 +133,7 @@ class RoleCall:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
-        await ctx.message.author.remove_roles(role, "y.iamnot")
+        await ctx.message.author.remove_roles(rol, "y.iamnot")
         await ctx.send(f"You've been removed from '{role}'.")
 
     @commands.command()
@@ -138,11 +142,12 @@ class RoleCall:
     @commands.cooldown(1, 10.0, commands.BucketType.guild)
     async def call(self, ctx, role: str):
         """Calls a callable role (you must be a member)"""
-        if role not in ctx.guild.roles:
+        rol = discord.utils.get(ctx.guild.roles, name=role)
+        if not rol:
             await ctx.send(f"There is no role '{role}' on this server.")
             return
 
-        if role not in ctx.message.author.roles:
+        if rol not in ctx.message.author.roles:
             await ctx.send(f"You are not part of the role '{role}'. You can only use this command if you are part of the role.")
             return
 
@@ -153,9 +158,8 @@ class RoleCall:
 
         # Make role temporarily mentionable if it isn't
         temp_mention = False
-        rolo = discord.utils.get(ctx.guild.roles, name=role)
-        if not rolo.mentionable:
-            rolo.edit(mentionable=True)
+        if not rol.mentionable:
+            rol.edit(mentionable=True)
             temp_mention = True
 
         if role not in cfg['msgs']:
@@ -166,13 +170,14 @@ class RoleCall:
 
         # Reset temp toggle
         if temp_mention:
-            rolo.edit(mentionable=False)
+            rol.edit(mentionable=False)
 
     @commands.command(aliases=['scm'])
     @commands.has_permissions(manage_roles=True)
     async def setcallmsg(self, ctx, role: str, msg: str):
         """Sets the call message for a callable role"""
-        if role not in ctx.guild.roles:
+        rol = discord.utils.get(ctx.guild.roles, name=role)
+        if not rol:
             await ctx.send(f"There is no role '{role}' on this server.")
             return
 
@@ -189,7 +194,8 @@ class RoleCall:
     @commands.has_permissions(manage_roles=True)
     async def removecallmsg(self, ctx, role: str):
         """Removes the call message for a callable role"""
-        if role not in ctx.guild.roles:
+        rol = discord.utils.get(ctx.guild.roles, name=role)
+        if not rol:
             await ctx.send(f"There is no role '{role}' on this server.")
             return
 
