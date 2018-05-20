@@ -185,6 +185,9 @@ class RoleCall:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
+        if 'msgs' not in cfg:
+            cfg['msgs'] = {}
+
         cfg['msgs'][role] = msg
         self._save_config(ctx.guild.id, cfg)
         await ctx.send(f"Call message for '{role}' has been set.")
@@ -203,7 +206,7 @@ class RoleCall:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
-        if role not in cfg['msgs']:
+        if 'msgs' not in cfg or role not in cfg['msgs']:
             await ctx.send(f"The role '{role}' has no custom call message.")
             return
 
