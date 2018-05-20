@@ -90,7 +90,7 @@ class RoleCall:
             await ctx.send("There are no callable roles on this server.")
             return
 
-        rols = '\n'.join(f'{k}' for k in enumerate(cfg['crs']))
+        rols = '\n'.join(f'{k}' for i,k in enumerate(cfg['crs']))
         await ctx.send(f"List of callable roles:\n`{rols}`")
 
     @commands.command()
@@ -111,7 +111,7 @@ class RoleCall:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
-        await ctx.message.author.add_roles(rol, "y.iam")
+        await ctx.message.author.add_roles(rol, reason="y.iam")
         await ctx.send(f"You've been added to '{role}'.")
 
     @commands.command()
@@ -132,7 +132,7 @@ class RoleCall:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
-        await ctx.message.author.remove_roles(rol, "y.iamnot")
+        await ctx.message.author.remove_roles(rol, reason="y.iamnot")
         await ctx.send(f"You've been removed from '{role}'.")
 
     @commands.command()
@@ -161,7 +161,7 @@ class RoleCall:
             rol.edit(mentionable=True)
             temp_mention = True
 
-        if role not in cfg['msgs']:
+        if 'msgs' not in cfg or role not in cfg['msgs']:
             # No custom message
             await ctx.send(f"Pinging all members of @{role}!")
         else:
