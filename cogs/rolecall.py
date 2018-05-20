@@ -163,7 +163,7 @@ class RoleCall:
 
         if 'msgs' not in cfg or role not in cfg['msgs']:
             # No custom message
-            await ctx.send(f"Pinging all members of @{role}!")
+            await ctx.send(f"Pinging all members of {rol.mention}!")
         else:
             await ctx.send(cfg['msgs'][role])
 
