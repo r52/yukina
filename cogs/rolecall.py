@@ -131,7 +131,7 @@ class RoleCall:
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(change_nickname=True)
-    @commands.cooldown(1, 10.0, BucketType.guild)
+    @commands.cooldown(1, 10.0, commands.BucketType.guild)
     async def call(self, ctx, role: str):
         if role not in ctx.guild.roles:
             await ctx.send(f"There is no role '{role}' on this server.")
