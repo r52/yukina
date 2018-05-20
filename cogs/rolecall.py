@@ -48,7 +48,6 @@ class RoleCall:
             return
 
         cfg = self._load_config(ctx.guild.id)
-
         if 'crs' not in cfg:
             cfg['crs'] = set()
 
@@ -108,7 +107,7 @@ class RoleCall:
             return
 
         cfg = self._load_config(ctx.guild.id)
-        if role not in cfg['crs']:
+        if 'crs' not in cfg or role not in cfg['crs']:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
@@ -129,7 +128,7 @@ class RoleCall:
             return
 
         cfg = self._load_config(ctx.guild.id)
-        if role not in cfg['crs']:
+        if 'crs' not in cfg or role not in cfg['crs']:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
@@ -152,7 +151,7 @@ class RoleCall:
             return
 
         cfg = self._load_config(ctx.guild.id)
-        if role not in cfg['crs']:
+        if 'crs' not in cfg or role not in cfg['crs']:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
@@ -182,7 +181,7 @@ class RoleCall:
             return
 
         cfg = self._load_config(ctx.guild.id)
-        if role not in cfg['crs']:
+        if 'crs' not in cfg or role not in cfg['crs']:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
@@ -200,7 +199,7 @@ class RoleCall:
             return
 
         cfg = self._load_config(ctx.guild.id)
-        if role not in cfg['crs']:
+        if 'crs' not in cfg or role not in cfg['crs']:
             await ctx.send(f"The role '{role}' is not in the list of callable roles.")
             return
 
