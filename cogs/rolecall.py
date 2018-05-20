@@ -48,7 +48,7 @@ class RoleCall:
 
         cfg = self._load_config(ctx.guild.id)
 
-        if not cfg['crs']:
+        if 'crs' not in cfg:
             cfg['crs'] = set()
 
         if role in cfg['crs']:
@@ -69,7 +69,7 @@ class RoleCall:
             return
 
         cfg = self._load_config(ctx.guild.id)
-        if not cfg['crs']:
+        if 'crs' not in cfg:
             cfg['crs'] = set()
 
         if role not in cfg['crs']:
@@ -85,7 +85,7 @@ class RoleCall:
     async def lcr(self, ctx):
         """List all callable roles on this server"""
         cfg = self._load_config(ctx.guild.id)
-        if not cfg['crs'] or len(cfg['crs']) == 0:
+        if 'crs' not in cfg or len(cfg['crs']) == 0:
             await ctx.send("There are no callable roles on this server.")
             return
 
