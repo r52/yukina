@@ -233,7 +233,7 @@ class Anime:
                     review = results['Review']['body']
 
             review = BeautifulSoup(review, "lxml").text
-            title = "Senpai's Review of {}".format(entry["title"][{self.lang}])
+            title = "Senpai's Review of {}".format(entry["title"][self.lang])
 
             split = False
             while len(review) > 2044:
