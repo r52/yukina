@@ -177,9 +177,9 @@ class Anime:
         embed.add_field(name='Status', value=entry['status'])
         sd = entry['startDate']
         ed = entry['endDate']
-        embed.add_field(name='Start Date', value=sd['year']+'-'+sd['month']+'-'+sd['day'])
+        embed.add_field(name='Start Date', value=str(sd['year'])+'-'+str(sd['month'])+'-'+str(sd['day']))
         if ed['year'] is not None:
-            embed.add_field(name='End Date', value=ed['year']+'-'+ed['month']+'-'+ed['day'])
+            embed.add_field(name='End Date', value=str(ed['year'])+'-'+str(ed['month'])+'-'+str(ed['day']))
 
         synopsis = (
             entry['description'][:1021] + '..') if len(entry['description']) > 1024 else entry['description']
@@ -251,6 +251,8 @@ class Anime:
             embed.add_field(name='Final Score',
                             value=':star: ' + str(listEntry['score']) + '/100 ' + tscore[round(listEntry['score']/10)])
             embed.add_field(name='Status', value=listEntry['status'])
+            if listEntry['completedAt']['year'] is not None:
+                embed.add_field(name='Completed On', value=str(listEntry['completedAt']['year'])+'-'+str(listEntry['completedAt']['month'])+'-'+str(listEntry['completedAt']['day']))
             embed.set_image(url=entry['coverImage']['large'])
             await ctx.send(embed=embed)
 
