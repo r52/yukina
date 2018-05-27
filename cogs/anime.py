@@ -7,7 +7,7 @@ import asyncio
 import discord
 from discord.ext import commands
 
-tscore = ["(Appalling)", "(Horrible)", "(Very Bad)", "(Bad)", "(Average)",
+tscore = ["(Garbage)", "(Appalling)", "(Horrible)", "(Very Bad)", "(Bad)", "(Average)",
           "(Fine)", "(Good)", "(Very Good)", "(Great)", "(Masterpiece)"]
 
 config = configparser.ConfigParser()
@@ -112,7 +112,7 @@ class Anime:
             return None
         elif pageinfo['total'] > 1:
             media = results['Page']['media']
-            page = '\n'.join(f'[{i}] {k["title"][{self.lang}]}' for i,k in enumerate(media, 1))
+            page = '\n'.join('[{0}] {1}'.format(i, k['title'][self.lang]) for i,k in enumerate(media, 1))
 
             if pageinfo['hasNextPage']:
                 page += '\n[...] Next Page'
@@ -145,7 +145,7 @@ class Anime:
                     pageinfo = results['Page']['pageInfo']
                     media = results['Page']['media']
 
-                    page = '\n'.join(f'[{i}] {k["title"][{self.lang}]}' for i,k in enumerate(media, 1))
+                    page = '\n'.join('[{0}] {1}'.format(i, k['title'][self.lang]) for i,k in enumerate(media, 1))
 
                     if curpage > 0:
                         page += '\n[..] Previous Page'
@@ -173,7 +173,7 @@ class Anime:
         else:
             embed.add_field(name='Episodes', value=entry['episodes'])
 
-        embed.add_field(name='Mean Score', value=':star: ' + entry['meanScore'] + '/100')
+        embed.add_field(name='Mean Score', value=':star: ' + str(entry['meanScore']) + '/100')
         embed.add_field(name='Status', value=entry['status'])
         sd = entry['startDate']
         ed = entry['endDate']
@@ -249,7 +249,7 @@ class Anime:
             embed.add_field(name='Type', value=entry['format'])
             embed.add_field(name='Episodes Watched', value=listEntry['progress'])
             embed.add_field(name='Final Score',
-                            value=':star: ' + listEntry['score'] + '/100 ' + tscore[round(listEntry['score']/10) - 1])
+                            value=':star: ' + str(listEntry['score']) + '/100 ' + tscore[round(listEntry['score']/10)])
             embed.add_field(name='Status', value=listEntry['status'])
             embed.set_image(url=entry['coverImage']['large'])
             await ctx.send(embed=embed)
