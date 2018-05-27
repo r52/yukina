@@ -104,7 +104,7 @@ class Anime:
 
         ql = gql(querystring.format(page=curpage, search=srchstr, medium=medium, lang=self.lang))
         results = self.client.execute(ql)
-        pageinfo = results['Page']['pageinfo']
+        pageinfo = results['Page']['pageInfo']
 
         entry = None
         if 0 == pageinfo['total']:
@@ -142,7 +142,7 @@ class Anime:
                 if not entry:
                     ql = gql(querystring.format(page=curpage, search=srchstr, medium=medium, lang=self.lang))
                     results = self.client.execute(ql)
-                    pageinfo = results['Page']['pageinfo']
+                    pageinfo = results['Page']['pageInfo']
                     media = results['Page']['media']
 
                     page = '\n'.join(f'[{i}] {k["title"][{self.lang}]}' for i,k in enumerate(media, 1))
