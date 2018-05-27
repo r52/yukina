@@ -17,7 +17,6 @@ class Anime:
     def __init__(self, bot):
         self.bot = bot
         self.senpai = False
-        self.lang = config['Anime']['lang']
 
         # configure gql transport
         authtoken = config['Anime']['token']
@@ -54,7 +53,8 @@ class Anime:
                 media (search: {search}, type: {medium}) {{
                     id
                     title {{
-                        {lang}
+                        english
+                        romaji
                     }}
                     type
                     format
@@ -102,7 +102,7 @@ class Anime:
         curpage = 1
         srchstr = json.dumps(title)
 
-        ql = gql(querystring.format(page=curpage, search=srchstr, medium=medium, lang=self.lang))
+        ql = gql(querystring.format(page=curpage, search=srchstr, medium=medium))
         results = self.client.execute(ql)
         pageinfo = results['Page']['pageInfo']
 
@@ -112,7 +112,7 @@ class Anime:
             return None
         elif pageinfo['total'] > 1:
             media = results['Page']['media']
-            page = '\n'.join('[{0}] {1}'.format(i, k['title'][self.lang]) for i,k in enumerate(media, 1))
+            page = '\n'.join('[{0}] {1}'.format(i, k['title']['english'] if k['title']['english'] else k['title']['romaji']) for i,k in enumerate(media, 1))
 
             if pageinfo['hasNextPage']:
                 page += '\n[...] Next Page'
@@ -140,12 +140,12 @@ class Anime:
                     break
 
                 if not entry:
-                    ql = gql(querystring.format(page=curpage, search=srchstr, medium=medium, lang=self.lang))
+                    ql = gql(querystring.format(page=curpage, search=srchstr, medium=medium))
                     results = self.client.execute(ql)
                     pageinfo = results['Page']['pageInfo']
                     media = results['Page']['media']
 
-                    page = '\n'.join('[{0}] {1}'.format(i, k['title'][self.lang]) for i,k in enumerate(media, 1))
+                    page = '\n'.join('[{0}] {1}'.format(i, k['title']['english'] if k['title']['english'] else k['title']['romaji']) for i,k in enumerate(media, 1))
 
                     if curpage > 0:
                         page += '\n[..] Previous Page'
@@ -164,7 +164,8 @@ class Anime:
         if not entry:
             return
 
-        embed = discord.Embed(title=entry['title'][self.lang], url=entry['siteUrl'])
+        title = entry['title']['english'] if entry['title']['english'] else entry['title']['romaji']
+        embed = discord.Embed(title=title, url=entry['siteUrl'])
         embed.add_field(name='Type', value=entry['format'])
 
         if medium == "MANGA":
@@ -210,9 +211,10 @@ class Anime:
         entry = await self._search_media(ctx, medium=medium, title=title)
 
         if entry is not None:
+            entryTitle = entry['title']['english'] if entry['title']['english'] else entry['title']['romaji']
             listEntry = entry['mediaListEntry']
             if not listEntry:
-                return await ctx.send(f"Senpai hasn't watched {entry['title'][{self.lang}]} yet!")
+                return await ctx.send(f"Senpai hasn't watched {entryTitle} yet!")
 
             review = listEntry['notes']
 
@@ -233,7 +235,7 @@ class Anime:
                     review = results['Review']['body']
 
             review = BeautifulSoup(review, "lxml").text
-            title = "Senpai's Review of {}".format(entry["title"][self.lang])
+            title = f"Senpai's Review of {entryTitle}"
 
             split = False
             while len(review) > 2044:
