@@ -1,7 +1,7 @@
 lxml>=4.1.1
 beautifulsoup4>=4.6.0
 discord-rewrite>=1.0.0
-spice-api>=1.0.4
 youtube_dl>=2018.4.25
 pynacl>=1.2.1
 pixivpy>=3.3.4
+gql>=0.1.0
