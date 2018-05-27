@@ -177,9 +177,9 @@ class Anime:
         embed.add_field(name='Status', value=entry['status'])
         sd = entry['startDate']
         ed = entry['endDate']
-        embed.add_field(name='Start Date', value=sd['year']+'-'sd['month']+'-'+sd['day'])
+        embed.add_field(name='Start Date', value=sd['year']+'-'+sd['month']+'-'+sd['day'])
         if ed['year'] is not None:
-            embed.add_field(name='End Date', value=ed['year']+'-'ed['month']+'-'+ed['day'])
+            embed.add_field(name='End Date', value=ed['year']+'-'+ed['month']+'-'+ed['day'])
 
         synopsis = (
             entry['description'][:1021] + '..') if len(entry['description']) > 1024 else entry['description']
