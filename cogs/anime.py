@@ -245,7 +245,7 @@ class Anime:
                     title = title + ' (cont)'
                     split = True
 
-            embed = discord.Embed(title=title, url=entry['siteUrl'], description=comments)
+            embed = discord.Embed(title=title, url=entry['siteUrl'], description=review)
             embed.add_field(name='Type', value=entry['format'])
             embed.add_field(name='Episodes Watched', value=listEntry['progress'])
             embed.add_field(name='Final Score',
