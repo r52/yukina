@@ -1,9 +1,9 @@
 [DEFAULT]
 token=
 
-[MAL]
-user=
-pass=
+[Anime]
+token=
+lang=english
 
 [pixiv]
 user=
