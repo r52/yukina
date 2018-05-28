@@ -53,6 +53,8 @@ class Weeb:
         if token is not None:
             config['pixiv']['access_token'] = token.response.access_token
             config['pixiv']['refresh_token'] = token.response.refresh_token
+            with open('config.ini', 'w') as configfile:
+                config.write(configfile)
         else:
             # If everything failed, kill it
             self.pixiv = None
