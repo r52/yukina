@@ -19,21 +19,43 @@ class Weeb:
         self._pixiv_login()
 
     def _pixiv_login(self):
-        if config['pixiv']['user']:
-            if not self.pixiv:
-                self.pixiv = AppPixivAPI(timeout=10)
+        if not self.pixiv:
+            self.pixiv = AppPixivAPI(timeout=10)
 
+        token = None
+        # First try to refresh
+        if 'refresh_token' in config['pixiv'] and 'access_token' in config['pixiv']:
+            # refresh login instead of generating new one
+            self.pixiv.set_auth(
+                config['pixiv']['access_token'], config['pixiv']['refresh_token'])
             try:
-                self.pixiv.login(config['pixiv']['user'],
-                                 config['pixiv']['pass'])
+                token = self.pixiv.auth()
+            except Exception as e:
+                print("pixiv: Failed to refresh login.")
+                print(f"{e}")
+            else:
+                print(f"pixiv: Login to pixiv refreshed.")
+
+        # Otherwise try new login
+        if token is None and config['pixiv']['user']:
+            print(f"pixiv: Logging in as {config['pixiv']['user']}...")
+            try:
+                token = self.pixiv.login(config['pixiv']['user'],
+                                         config['pixiv']['pass'])
             except Exception as e:
                 print("pixiv: Failed to login")
                 print(f"{e}")
-                self.pixiv = None
             else:
                 print(
                     f"pixiv: Logged into pixiv as {config['pixiv']['user']}.")
+
+        # Save tokens if successful
+        if token is not None:
+            config['pixiv']['access_token'] = token.response.access_token
+            config['pixiv']['refresh_token'] = token.response.refresh_token
         else:
+            # If everything failed, kill it
+            self.pixiv = None
             print("pixiv: Unavailable")
 
     async def _autoimg_task(self, channel, *, timeout=30, nsfw=False):
@@ -103,7 +125,7 @@ class Weeb:
 
             if 'error' in json_result:
                 # Refresh oauth
-                self.pixiv.auth()
+                self._pixiv_login()
                 continue
 
             if 'illusts' in json_result:
@@ -136,7 +158,7 @@ class Weeb:
     async def _post_pixiv(self, channel, id, url, download=True):
         if download:
             response = self.pixiv.requests_call('GET', url, headers={
-                                                'Referer': 'https://app-api.pixiv.net/'}, stream=True)
+                'Referer': 'https://app-api.pixiv.net/'}, stream=True)
             img = discord.File(response.raw, os.path.basename(url))
             await channel.send(f"<https://pixiv.net/i/{id}>", file=img)
             del response
