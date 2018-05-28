@@ -103,15 +103,25 @@ class Weeb:
 
             if 'error' in json_result:
                 # Refresh oauth
-                self._pixiv_login()
+                self.pixiv.auth()
                 continue
 
             if 'illusts' in json_result:
                 break
 
         illust = random.choice(json_result.illusts)
-        url = None
 
+        def is_manga(il):
+            for tag in il.tags:
+                if tag['name'] == '漫画':
+                    return True
+            return False
+
+        # skip manga panels
+        while is_manga(illust):
+            illust = random.choice(json_result.illusts)
+
+        url = None
         if len(illust.meta_pages) > 0:
             # this is a collection/album
             # select a random image from the collection
