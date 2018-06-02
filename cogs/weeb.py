@@ -2,6 +2,7 @@ import configparser
 import os
 import random
 import asyncio
+from collections import deque
 from pixivpy3 import *
 import discord
 from discord.ext import commands
@@ -14,6 +15,7 @@ class Weeb:
     def __init__(self, bot):
         self.bot = bot
         self.pixiv = None
+        self.dupes = deque(maxlen=100)
         self.autotasks = {}
 
         self._pixiv_login()
@@ -135,16 +137,20 @@ class Weeb:
 
         illust = random.choice(json_result.illusts)
 
-        def is_manga(il):
+        def is_manga_or_dupe(il):
+            if self.dupes.count(illust.id) > 0:
+                return True
+
             for tag in il.tags:
                 if tag['name'] == '漫画':
                     return True
             return False
 
         # skip manga panels
-        while is_manga(illust):
+        while is_manga_or_dupe(illust):
             illust = random.choice(json_result.illusts)
 
+        self.dupes.append(illust.id)
         url = None
         if len(illust.meta_pages) > 0:
             # this is a collection/album
