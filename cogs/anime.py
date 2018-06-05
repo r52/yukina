@@ -217,6 +217,7 @@ class Anime:
                 return await ctx.send(f"Senpai hasn't watched {entryTitle} yet!")
 
             review = listEntry['notes']
+            score = listEntry['score']
 
             if not review:
                 # if review not in notes, try to find the actual review
@@ -224,6 +225,7 @@ class Anime:
                 query {{
                     Review (mediaId: {mediaId}, userId: {userId}, mediaType: {medium}) {{
                         body(asHtml: false)
+                        score
                     }}
                 }}
                 """
@@ -233,6 +235,7 @@ class Anime:
                     review = "Senpai hasn't reviewed this anime!"
                 else:
                     review = results['Review']['body']
+                    score = results['Review']['score']
 
             review = BeautifulSoup(review, "lxml").text
             title = f"Senpai's Review of {entryTitle}"
@@ -251,7 +254,7 @@ class Anime:
             embed.add_field(name='Type', value=entry['format'])
             embed.add_field(name='Episodes Watched', value=listEntry['progress'])
             embed.add_field(name='Final Score',
-                            value=':star: ' + str(listEntry['score']) + '/100 ' + tscore[round(listEntry['score']/10)])
+                            value=':star: ' + str(score) + '/100 ' + tscore[round(score/10)])
             embed.add_field(name='Status', value=listEntry['status'])
             if listEntry['completedAt']['year'] is not None:
                 embed.add_field(name='Completed On', value=str(listEntry['completedAt']['year'])+'-'+str(listEntry['completedAt']['month'])+'-'+str(listEntry['completedAt']['day']))
