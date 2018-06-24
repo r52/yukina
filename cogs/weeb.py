@@ -2,6 +2,7 @@ import configparser
 import os
 import random
 import asyncio
+import json
 from collections import deque
 from pixivpy3 import *
 import discord
@@ -15,10 +16,20 @@ class Weeb:
     def __init__(self, bot):
         self.bot = bot
         self.pixiv = None
+        self.cfg = config['pixiv']
         self.dupes = deque(maxlen=100)
+
+        if 'dupes' in self.cfg:
+            self.dupes = deque(json.loads(self.cfg['dupes']), maxlen=100)
+
         self.autotasks = {}
 
         self._pixiv_login()
+
+    def __del__(self):
+        for t in self.autotasks:
+            t.cancel()
+            del t
 
     def _pixiv_login(self):
         if not self.pixiv:
@@ -26,10 +37,10 @@ class Weeb:
 
         token = None
         # First try to refresh
-        if 'refresh_token' in config['pixiv'] and 'access_token' in config['pixiv']:
+        if 'refresh_token' in self.cfg and 'access_token' in self.cfg:
             # refresh login instead of generating new one
             self.pixiv.set_auth(
-                config['pixiv']['access_token'], config['pixiv']['refresh_token'])
+                self.cfg['access_token'], self.cfg['refresh_token'])
             try:
                 token = self.pixiv.auth()
             except Exception as e:
@@ -39,22 +50,22 @@ class Weeb:
                 print(f"pixiv: Login to pixiv refreshed.")
 
         # Otherwise try new login
-        if token is None and config['pixiv']['user']:
-            print(f"pixiv: Logging in as {config['pixiv']['user']}...")
+        if token is None and self.cfg['user']:
+            print(f"pixiv: Logging in as {self.cfg['user']}...")
             try:
-                token = self.pixiv.login(config['pixiv']['user'],
-                                         config['pixiv']['pass'])
+                token = self.pixiv.login(self.cfg['user'],
+                                         self.cfg['pass'])
             except Exception as e:
                 print("pixiv: Failed to login")
                 print(f"{e}")
             else:
                 print(
-                    f"pixiv: Logged into pixiv as {config['pixiv']['user']}.")
+                    f"pixiv: Logged into pixiv as {self.cfg['user']}.")
 
         # Save tokens if successful
         if token is not None:
-            config['pixiv']['access_token'] = token.response.access_token
-            config['pixiv']['refresh_token'] = token.response.refresh_token
+            self.cfg['access_token'] = token.response.access_token
+            self.cfg['refresh_token'] = token.response.refresh_token
             with open('config.ini', 'w') as configfile:
                 config.write(configfile)
         else:
@@ -151,6 +162,11 @@ class Weeb:
             illust = random.choice(json_result.illusts)
 
         self.dupes.append(illust.id)
+        # write cfg
+        self.cfg['dupes'] = json.dumps(list(self.dupes))
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+
         url = None
         if len(illust.meta_pages) > 0:
             # this is a collection/album
