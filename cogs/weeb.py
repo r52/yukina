@@ -121,32 +121,40 @@ class Weeb:
             await self._random_pixiv(ctx.channel, nsfw=True)
 
     async def _random_pixiv(self, channel, *, nsfw=False):
-        ranking_modes = ['day', 'week']
-        json_result = None
 
-        if nsfw:
-            ranking_modes = ['day_r18', 'week_r18']
+        def get_illust(nsfw, offset=None):
+            json_result = None
+            ranking_modes = ['day', 'week']
 
-        while True:
-            try:
-                if not nsfw and random.getrandbits(1):
-                    json_result = self.pixiv.illust_recommended('illust')
-                else:
-                    json_result = self.pixiv.illust_ranking(
-                        random.choice(ranking_modes))
-            except Exception as e:
-                print(f"pixiv: polling failed: {e}")
-                return
+            if nsfw:
+                ranking_modes = ['day_r18', 'week_r18']
 
-            if 'error' in json_result:
-                # Refresh oauth
-                self._pixiv_login()
-                continue
+            while True:
+                try:
+                    if not nsfw and random.getrandbits(1):
+                        json_result = self.pixiv.illust_recommended('illust', offset=offset)
+                    else:
+                        json_result = self.pixiv.illust_ranking(random.choice(ranking_modes), offset=offset)
+                except Exception as e:
+                    print(f"pixiv: polling failed: {e}")
+                    break
 
-            if 'illusts' in json_result:
-                break
+                if 'error' in json_result:
+                    # Refresh oauth
+                    self._pixiv_login()
+                    continue
 
-        illust = random.choice(json_result.illusts)
+                if 'illusts' in json_result:
+                    break
+
+            return json_result
+
+        il_results = get_illust(nsfw)
+        if il_results is None:
+            # polling failed, internet probably dead, kill this attempt
+            return
+
+        illust = random.choice(il_results.illusts)
 
         def is_manga_or_dupe(il):
             if self.dupes.count(illust.id) > 0:
@@ -158,8 +166,17 @@ class Weeb:
             return False
 
         # skip manga panels
+        numdupes = 0
+        offset = 0
         while is_manga_or_dupe(illust):
-            illust = random.choice(json_result.illusts)
+            numdupes += 1
+            if numdupes % 20 is not 0:
+                offset += len(il_results)
+
+            if numdupes % 10 is not 0:
+                il_results = get_illust(nsfw, offset)
+
+            illust = random.choice(il_results.illusts)
 
         self.dupes.append(illust.id)
         # write cfg
