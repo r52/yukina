@@ -27,7 +27,7 @@ class Weeb:
         self._pixiv_login()
 
     def __del__(self):
-        for t in self.autotasks:
+        for k, t in self.autotasks.items():
             t.cancel()
             del t
 
