@@ -170,10 +170,10 @@ class Weeb:
         offset = 0
         while is_manga_or_dupe(illust):
             numdupes += 1
-            if numdupes % 20 is not 0:
+            if numdupes % 20 is 0:
                 offset += len(il_results)
 
-            if numdupes % 10 is not 0:
+            if numdupes % 10 is 0:
                 il_results = get_illust(nsfw, offset)
 
             illust = random.choice(il_results.illusts)
