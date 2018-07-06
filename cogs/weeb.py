@@ -80,9 +80,7 @@ class Weeb:
     async def _autoimg_task(self, channel, *, timeout=30, nsfw=False):
         while True:
             await asyncio.sleep(timeout * 60)
-
-            async with channel.typing():
-                await self._random_pixiv(channel, nsfw=nsfw)
+            await self._random_pixiv(channel, nsfw=nsfw)
 
     @commands.command()
     async def image(self, ctx):
@@ -125,6 +123,7 @@ class Weeb:
             await self._random_pixiv(ctx.channel, nsfw=True)
 
     async def _random_pixiv(self, channel, *, nsfw=False):
+        self.log(f"Posting a random pixiv image to channel {channel.str}")
 
         def get_illust(nsfw, offset=None):
             json_result = None
@@ -189,6 +188,8 @@ class Weeb:
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
 
+        self.log(f"Posting illust id {illust.id}")
+
         url = None
         if len(illust.meta_pages) > 0:
             # this is a collection/album
@@ -207,11 +208,15 @@ class Weeb:
 
     async def _post_pixiv(self, channel, id, url, download=True):
         if download:
-            response = self.pixiv.requests_call('GET', url, headers={
-                'Referer': 'https://app-api.pixiv.net/'}, stream=True)
-            img = discord.File(response.raw, os.path.basename(url))
-            await channel.send(f"<https://pixiv.net/i/{id}>", file=img)
-            del response
+            try:
+                response = self.pixiv.requests_call('GET', url, headers={
+                    'Referer': 'https://app-api.pixiv.net/'}, stream=True)
+            except Exception as e:
+                self.log(f"pixiv: download image {url} failed: {e}")
+            else:
+                img = discord.File(response.raw, os.path.basename(url))
+                await channel.send(f"<https://pixiv.net/i/{id}>", file=img)
+                del response
         else:
             await channel.send(f"https://pixiv.net/i/{id}")
 
