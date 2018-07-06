@@ -3,6 +3,7 @@ import os
 import random
 import asyncio
 import json
+import datetime
 from collections import deque
 from pixivpy3 import *
 import discord
@@ -31,6 +32,10 @@ class Weeb:
             t.cancel()
             del t
 
+    def log(self, msg):
+        st = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"[{st}] {msg}")
+
     def _pixiv_login(self):
         if not self.pixiv:
             self.pixiv = AppPixivAPI(timeout=10)
@@ -44,23 +49,22 @@ class Weeb:
             try:
                 token = self.pixiv.auth()
             except Exception as e:
-                print("pixiv: Failed to refresh login.")
-                print(f"{e}")
+                self.log("pixiv: Failed to refresh login.")
+                self.log(f"{e}")
             else:
-                print(f"pixiv: Login to pixiv refreshed.")
+                self.log(f"pixiv: Login to pixiv refreshed.")
 
         # Otherwise try new login
         if token is None and self.cfg['user']:
-            print(f"pixiv: Logging in as {self.cfg['user']}...")
+            self.log(f"pixiv: Logging in as {self.cfg['user']}...")
             try:
                 token = self.pixiv.login(self.cfg['user'],
                                          self.cfg['pass'])
             except Exception as e:
-                print("pixiv: Failed to login")
-                print(f"{e}")
+                self.log("pixiv: Failed to login")
+                self.log(f"{e}")
             else:
-                print(
-                    f"pixiv: Logged into pixiv as {self.cfg['user']}.")
+                self.log(f"pixiv: Logged into pixiv as {self.cfg['user']}.")
 
         # Save tokens if successful
         if token is not None:
@@ -71,7 +75,7 @@ class Weeb:
         else:
             # If everything failed, kill it
             self.pixiv = None
-            print("pixiv: Unavailable")
+            self.log("pixiv: Unavailable")
 
     async def _autoimg_task(self, channel, *, timeout=30, nsfw=False):
         while True:
@@ -136,7 +140,7 @@ class Weeb:
                     else:
                         json_result = self.pixiv.illust_ranking(random.choice(ranking_modes), offset=offset)
                 except Exception as e:
-                    print(f"pixiv: polling failed: {e}")
+                    self.log(f"pixiv: polling failed: {e}")
                     break
 
                 if 'error' in json_result:
@@ -151,6 +155,7 @@ class Weeb:
 
         il_results = get_illust(nsfw)
         if il_results is None:
+            self.log("pixiv: No results, something went wrong")
             # polling failed, internet probably dead, kill this attempt
             return
 
@@ -193,6 +198,10 @@ class Weeb:
         else:
             # single image
             url = illust.meta_single_page['original_image_url']
+
+        if url is None:
+            self.log(f"Illust {illust.id} has no url. Wtf?")
+            return
 
         await self._post_pixiv(channel, illust.id, url)
 
