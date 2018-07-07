@@ -79,9 +79,9 @@ class Weeb:
 
     async def _autoimg_task(self, channel, *, timeout=30, nsfw=False):
         while True:
-            self.log(f"Start autoimg timer on channel {channel.str} for {timeout} minutes")
+            self.log(f"Start autoimg timer on channel {channel.name} for {timeout} minutes")
             await asyncio.sleep(timeout * 60)
-            self.log(f"Pop autoimg timer on channel {channel.str}")
+            self.log(f"Pop autoimg timer on channel {channel.name}")
             await self._random_pixiv(channel, nsfw=nsfw)
 
     @commands.command()
@@ -99,7 +99,7 @@ class Weeb:
         """Posts a random illustration from pixiv every X minutes (min. 1, 0 to cancel)"""
         if delay <= 0:
             if ctx.channel.id in self.autotasks:
-                self.log(f"Destroying old autoimg task for channel {ctx.channel.str}")
+                self.log(f"Destroying old autoimg task for channel {ctx.channel.name}")
                 self.autotasks[ctx.channel.id].cancel()
                 del self.autotasks[ctx.channel.id]
                 await ctx.send("No longer posting images in this channel!")
@@ -107,11 +107,11 @@ class Weeb:
                 await ctx.send("This channel is not setup to post images!")
         else:
             if ctx.channel.id in self.autotasks:
-                self.log(f"Destroying old autoimg task for channel {ctx.channel.str}")
+                self.log(f"Destroying old autoimg task for channel {ctx.channel.name}")
                 self.autotasks[ctx.channel.id].cancel()
                 del self.autotasks[ctx.channel.id]
 
-            self.log(f"Creating new autoimg task for channel {ctx.channel.str} with {delay} min delay")
+            self.log(f"Creating new autoimg task for channel {ctx.channel.name} with {delay} min delay")
             self.autotasks[ctx.channel.id] = asyncio.ensure_future(self._autoimg_task(ctx.channel, timeout=delay, nsfw=False))
             await ctx.send(f"I will post images in this channel every {delay} minute(s)!")
 
@@ -127,7 +127,7 @@ class Weeb:
             await self._random_pixiv(ctx.channel, nsfw=True)
 
     async def _random_pixiv(self, channel, *, nsfw=False):
-        self.log(f"Posting a random pixiv image to channel {channel.str}")
+        self.log(f"Posting a random pixiv image to channel {channel.name}")
 
         def get_illust(nsfw, offset=None):
             json_result = None
