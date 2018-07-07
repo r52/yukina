@@ -79,7 +79,9 @@ class Weeb:
 
     async def _autoimg_task(self, channel, *, timeout=30, nsfw=False):
         while True:
+            self.log(f"Start autoimg timer on channel {channel.str} for {timeout} minutes")
             await asyncio.sleep(timeout * 60)
+            self.log(f"Pop autoimg timer on channel {channel.str}")
             await self._random_pixiv(channel, nsfw=nsfw)
 
     @commands.command()
