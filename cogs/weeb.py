@@ -99,6 +99,7 @@ class Weeb:
         """Posts a random illustration from pixiv every X minutes (min. 1, 0 to cancel)"""
         if delay <= 0:
             if ctx.channel.id in self.autotasks:
+                self.log(f"Destroying old autoimg task for channel {ctx.channel.str}")
                 self.autotasks[ctx.channel.id].cancel()
                 del self.autotasks[ctx.channel.id]
                 await ctx.send("No longer posting images in this channel!")
@@ -106,11 +107,12 @@ class Weeb:
                 await ctx.send("This channel is not setup to post images!")
         else:
             if ctx.channel.id in self.autotasks:
+                self.log(f"Destroying old autoimg task for channel {ctx.channel.str}")
                 self.autotasks[ctx.channel.id].cancel()
                 del self.autotasks[ctx.channel.id]
 
-            self.autotasks[ctx.channel.id] = asyncio.get_event_loop().create_task(
-                self._autoimg_task(ctx.channel, timeout=delay, nsfw=False))
+            self.log(f"Creating new autoimg task for channel {ctx.channel.str} with {delay} min delay")
+            self.autotasks[ctx.channel.id] = asyncio.ensure_future(self._autoimg_task(ctx.channel, timeout=delay, nsfw=False))
             await ctx.send(f"I will post images in this channel every {delay} minute(s)!")
 
     @commands.command()
