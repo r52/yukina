@@ -226,10 +226,10 @@ class Anime:
 
             title = f"Senpai's Review of {entryTitle}"
             review = None
+            score = listEntry['score']
 
             if not scoreonly:
                 review = listEntry['notes']
-                score = listEntry['score']
 
                 if not review:
                     # if review not in notes, try to find the actual review
