@@ -82,7 +82,7 @@ class Anime:
                         id
                         userId
                         status
-                        score(format: POINT_100)
+                        score(format: POINT_10_DECIMAL)
                         progress
                         notes
                         completedAt {{
@@ -225,47 +225,55 @@ class Anime:
                 return await ctx.send(f"Senpai hasn't watched {entryTitle} yet!")
 
             title = f"Senpai's Review of {entryTitle}"
-            review = None
+            review = listEntry['notes']
             score = listEntry['score']
 
-            if not scoreonly:
-                review = listEntry['notes']
-
-                if not review:
-                    # if review not in notes, try to find the actual review
-                    query = """
-                    query {{
-                        Review (mediaId: {mediaId}, userId: {userId}, mediaType: {medium}) {{
-                            body(asHtml: false)
-                            score
-                        }}
+            if not review:
+                # if review not in notes, try to find the actual review
+                query = """
+                query {{
+                    Review (mediaId: {mediaId}, userId: {userId}, mediaType: {medium}) {{
+                        body(asHtml: false)
+                        score
+                        summary
                     }}
-                    """
-                    ql = gql(query.format(mediaId=entry['id'], userId=listEntry['userId'], medium=medium))
-                    results = self.client.execute(ql)
-                    if results['Review'] is None:
-                        review = "Senpai hasn't reviewed this anime!"
+                }}
+                """
+                ql = gql(query.format(mediaId=entry['id'], userId=listEntry['userId'], medium=medium))
+                results = self.client.execute(ql)
+                if results['Review'] is None:
+                    if scoreonly:
+                        review = ""
+                    else:
+                        review = "Senpai hasn't reviewed this anime yet!"
+                else:
+                    if scoreonly:
+                        review = results['Review']['summary']
                     else:
                         review = results['Review']['body']
-                        score = results['Review']['score']
+                    score = results['Review']['score'] / 10
+            elif scoreonly:
+                # remove notes review if score only
+                review = ""
 
-                review = BeautifulSoup(review, "lxml").text
+            review = BeautifulSoup(review, "lxml").text
 
-                split = False
-                while len(review) > 2044:
-                    part = (review[:2044] + '...')
-                    review = '...' + review[2044:]
-                    pembed = discord.Embed(title=title, url=entry['siteUrl'], description=part)
-                    await ctx.send(embed=pembed)
-                    if not split:
-                        title = title + ' (cont)'
-                        split = True
+            split = False
+            while len(review) > 2044:
+                part = (review[:2044] + '...')
+                review = '...' + review[2044:]
+                pembed = discord.Embed(title=title, url=entry['siteUrl'], description=part)
+                await
+                ctx.send(embed=pembed)
+                if not split:
+                    title = title + ' (cont)'
+                    split = True
 
             embed = discord.Embed(title=title, url=entry['siteUrl'], description=review)
             embed.add_field(name='Type', value=entry['format'])
             embed.add_field(name='Episodes Watched', value=listEntry['progress'])
             embed.add_field(name="Senpai's Score",
-                            value=':star: ' + str(score) + '/100 ' + tscore[round(score/10)])
+                            value=':star: ' + str(score) + '/10 ' + tscore[round(score)])
             embed.add_field(name='Status', value=listEntry['status'])
             if listEntry['completedAt']['year'] is not None:
                 embed.add_field(name='Completed On', value=str(listEntry['completedAt']['year'])+'-'+str(listEntry['completedAt']['month'])+'-'+str(listEntry['completedAt']['day']))
