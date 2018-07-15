@@ -263,8 +263,7 @@ class Anime:
                 part = (review[:2044] + '...')
                 review = '...' + review[2044:]
                 pembed = discord.Embed(title=title, url=entry['siteUrl'], description=part)
-                await
-                ctx.send(embed=pembed)
+                await ctx.send(embed=pembed)
                 if not split:
                     title = title + ' (cont)'
                     split = True
