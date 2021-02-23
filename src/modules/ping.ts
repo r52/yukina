@@ -26,9 +26,8 @@ export class Ping extends Module {
     client: Discord.Client,
     store: Conf<ConfStore>
   ): void {
-    // ping
-    regCmd('ping', (msg: Discord.Message, args: string[]) => {
-      msg.channel.send('Pong');
+    regCmd('ping', async (msg: Discord.Message, args: string[]) => {
+      await msg.channel.send('Pong');
     });
   }
 }

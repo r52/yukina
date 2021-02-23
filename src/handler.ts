@@ -1,9 +1,10 @@
 import Discord from 'discord.js';
 import Conf from 'conf';
 
+import { ConfStore } from 'types/store';
 import { Module } from './module';
 import { Ping } from './modules/ping';
-import { ConfStore } from 'types/store';
+import { Music } from './modules/music';
 
 export class Handler {
   private client: Discord.Client;
@@ -23,17 +24,19 @@ export class Handler {
     this.store = store;
 
     // prefix
-    this.prefix = store.get('prefix') as string;
+    this.prefix = store.get('prefix');
 
     store.onDidChange('prefix', (n) => {
-      this.prefix = n as string;
+      if (n) {
+        this.prefix = n as string;
 
-      console.log('Prefix changed to', this.prefix);
+        console.log('Prefix changed to', this.prefix);
+      }
     });
 
     console.log('Prefix loaded as', this.prefix);
 
-    client.on('message', (msg) => {
+    client.on('message', async (msg) => {
       this.handleMessage(msg);
     });
 
@@ -50,6 +53,7 @@ export class Handler {
 
     // load modules
     this.modules.push(new Ping(regcmd, this.client, this.store));
+    this.modules.push(new Music(regcmd, this.client, this.store));
 
     console.log('All Modules loaded');
   }

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2019",
     "module": "commonjs",
     // "declaration": true,
     // "declarationMap": true,
@@ -10,7 +10,7 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "baseUrl": ".",
-    "lib": ["es2020"]
+    "lib": ["esnext"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "build"]
