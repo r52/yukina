@@ -8,6 +8,7 @@ import { ConfStore } from 'types/store';
 export class Music extends Module {
   private connection: Discord.VoiceConnection | null = null;
   private dispatcher: Discord.StreamDispatcher | null = null;
+  private timeout: NodeJS.Timeout | null = null;
 
   constructor(
     regCmd: (
@@ -58,6 +59,8 @@ export class Music extends Module {
       this.connection = null;
       this.dispatcher = null;
     }
+
+    this.timeout = null;
   }
 
   private async join(msg: Discord.Message, args: string[]) {
@@ -123,18 +126,23 @@ export class Music extends Module {
         if (this.connection) {
           // TODO: queue
 
+          if (this.timeout) {
+            clearTimeout(this.timeout);
+            this.timeout = null;
+          }
+
           this.dispatcher = this.connection.play(
             ytdl(args[0], { filter: 'audioonly', quality: 'highestaudio' }),
             { volume: 0.1 }
           );
 
-          this.dispatcher.on('start', () => {
+          this.dispatcher.on('start', async () => {
             const embed = new Discord.MessageEmbed()
               .setTitle('🎶 Now Playing: ' + info.videoDetails.title)
               .setColor(0xff0000)
               .setDescription(url)
               .setURL(url);
-            msg.channel.send(embed);
+            await msg.channel.send(embed);
           });
 
           this.dispatcher.on('finish', () => {
@@ -142,7 +150,7 @@ export class Music extends Module {
             this.dispatcher?.destroy();
             this.dispatcher = null;
 
-            setTimeout(async () => {
+            this.timeout = setTimeout(async () => {
               await this.timeoutCheck();
             }, 60000);
           });

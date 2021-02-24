@@ -34,6 +34,7 @@ export class Moderation extends Module {
   private async prune(msg: Discord.Message, args: string[]) {
     if (!msg.guild) return;
     if (!args.length) return;
+    if (!(msg.channel.type === 'text')) return;
 
     let num = Number(args[0]);
 
@@ -41,10 +42,10 @@ export class Moderation extends Module {
       // Also get rid of the command
       num++;
 
-      msg.channel.messages.fetch({ limit: num }).then((messages) => {
-        messages.each(async (m) => {
-          await m.delete();
-        });
+      msg.channel.messages.fetch({ limit: num }).then(async (messages) => {
+        if (msg.channel.type === 'text') {
+          await msg.channel.bulkDelete(messages);
+        }
       });
     }
   }
