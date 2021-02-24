@@ -2,8 +2,7 @@
   "compilerOptions": {
     "target": "es2019",
     "module": "commonjs",
-    // "declaration": true,
-    // "declarationMap": true,
+    "resolveJsonModule": true,
     "sourceMap": true,
     "outDir": "build",
     "strict": true,
@@ -13,5 +12,5 @@
     "lib": ["esnext"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "build"]
+  "exclude": ["node_modules", "build", "dist"]
 }
