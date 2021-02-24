@@ -2,7 +2,7 @@ import Discord from 'discord.js';
 import Conf from 'conf';
 import ytdl from 'ytdl-core';
 
-import { Module } from '../module';
+import { Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 
 export class Music extends Module {
@@ -10,27 +10,13 @@ export class Music extends Module {
   private dispatcher: Discord.StreamDispatcher | null = null;
   private timeout: NodeJS.Timeout | null = null;
 
-  constructor(
-    regCmd: (
-      cmd: string,
-      fn: (msg: Discord.Message, args: string[]) => void
-    ) => void,
-    client: Discord.Client,
-    store: Conf<ConfStore>
-  ) {
+  constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
     super(regCmd, client, store);
 
     console.log('Music module loaded');
   }
 
-  load(
-    regCmd: (
-      cmd: string,
-      fn: (msg: Discord.Message, args: string[]) => void
-    ) => void,
-    client: Discord.Client,
-    store: Conf<ConfStore>
-  ): void {
+  load(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>): void {
     // join
     regCmd('join', async (msg: Discord.Message, args: string[]) => {
       await this.join(msg, args);
@@ -115,6 +101,9 @@ export class Music extends Module {
       msg.reply('Error: Invalid URL');
       return;
     }
+
+    // Handled msg
+    await msg.delete();
 
     ytdl
       .getBasicInfo(url)

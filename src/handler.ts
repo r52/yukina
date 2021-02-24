@@ -6,6 +6,7 @@ import { Module } from './module';
 import { Ping } from './modules/ping';
 import { Music } from './modules/music';
 import { Moderation } from './modules/moderation';
+import { Anime } from './modules/anime';
 
 export class Handler {
   private client: Discord.Client;
@@ -56,6 +57,7 @@ export class Handler {
     this.modules.push(new Ping(regcmd, this.client, this.store));
     this.modules.push(new Music(regcmd, this.client, this.store));
     this.modules.push(new Moderation(regcmd, this.client, this.store));
+    this.modules.push(new Anime(regcmd, this.client, this.store));
 
     console.log('All Modules loaded');
   }

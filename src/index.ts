@@ -24,10 +24,10 @@ client.once('ready', () => {
   console.log('Ready!');
 });
 
-const discordtoken = config.get<string>('discord.token');
+const token = config.get<string>('discord.token');
 
-if (discordtoken.trim()) {
-  client.login(discordtoken);
+if (token.trim()) {
+  client.login(token);
 } else {
   console.error('No Discord token configured');
 }

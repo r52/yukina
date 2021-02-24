@@ -1,31 +1,17 @@
 import Discord from 'discord.js';
 import Conf from 'conf';
 
-import { Module } from '../module';
+import { Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 
 export class Moderation extends Module {
-  constructor(
-    regCmd: (
-      cmd: string,
-      fn: (msg: Discord.Message, args: string[]) => void
-    ) => void,
-    client: Discord.Client,
-    store: Conf<ConfStore>
-  ) {
+  constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
     super(regCmd, client, store);
 
     console.log('Moderation module loaded');
   }
 
-  load(
-    regCmd: (
-      cmd: string,
-      fn: (msg: Discord.Message, args: string[]) => void
-    ) => void,
-    client: Discord.Client,
-    store: Conf<ConfStore>
-  ): void {
+  load(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>): void {
     regCmd('prune', async (msg: Discord.Message, args: string[]) => {
       await this.prune(msg, args);
     });
