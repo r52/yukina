@@ -37,17 +37,17 @@ export class Music extends Module {
 
     // leave
     regCmd('leave', async (msg: Discord.Message, args: string[]) => {
-      this.leave(msg, args);
+      await this.leave(msg, args);
     });
 
     // play
     regCmd('play', async (msg: Discord.Message, args: string[]) => {
-      this.play(msg, args);
+      await this.play(msg, args);
     });
 
     // stop
     regCmd('stop', async (msg: Discord.Message, args: string[]) => {
-      this.stop(msg, args);
+      await this.stop(msg, args);
     });
   }
 
