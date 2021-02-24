@@ -6,6 +6,7 @@ import { GraphQLClient, gql } from 'graphql-request';
 
 import { Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
+import { Media, MediaType, Query } from '../types/anilist';
 
 const query = gql`
   query($page: Int!, $search: String!, $medium: MediaType!) {
@@ -98,7 +99,7 @@ export class Anime extends Module {
     });
   }
 
-  private async search(msg: Discord.Message, type: string, arg: string) {
+  private async search(msg: Discord.Message, type: MediaType, arg: string) {
     if (!msg.guild) return;
     if (!arg) return;
     if (!(msg.channel.type === 'text')) return;
@@ -106,29 +107,34 @@ export class Anime extends Module {
     if (this.gqlClient) {
       let curpage = 1;
 
-      let data = await this.gqlClient.request(query, {
+      let data = await this.gqlClient.request<Query>(query, {
         page: curpage,
         search: arg,
         medium: type,
       });
 
-      let pageinfo = data['Page']['pageInfo'];
+      let pageinfo = data.Page?.pageInfo;
 
-      let entry = null;
-
-      if (pageinfo['total'] == 0) {
-        await msg.channel.send("I couldn't find anything with that name!");
+      if (!pageinfo) {
+        await msg.reply('Error querying Anilist! Please try again later.');
         return null;
       }
 
-      if (pageinfo['total'] > 1) {
-        let media = data['Page']['media'];
+      let entry = null;
+
+      if (pageinfo?.total == 0) {
+        await msg.reply("I couldn't find anything with that name!");
+        return null;
+      }
+
+      if (pageinfo.total && pageinfo.total > 1) {
+        let media = data.Page?.media;
         let pages: string[] = [];
 
         if (Array.isArray(media)) {
           media.forEach((entry, idx) => {
             const line = `[${idx + 1}] ${
-              entry['title']['english'] ?? entry['title']['romaji']
+              entry?.title?.english ?? entry?.title?.romaji
             }`;
             pages.push(line);
           });
@@ -157,13 +163,13 @@ export class Anime extends Module {
           await msg.channel
             .awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
             .then(async (replies) => {
-              if (replies.size) {
+              if (media && replies.size) {
                 const reply = replies.first() as Discord.Message;
 
                 if (reply.content == '..') {
                   if (curpage > 0) curpage -= 1;
                 } else if (reply.content == '...') {
-                  if (pageinfo['hasNextPage']) curpage += 1;
+                  if (pageinfo?.hasNextPage) curpage += 1;
                 } else {
                   entry = media[parseInt(reply.content) - 1];
                   await pageSelect.delete();
@@ -176,20 +182,20 @@ export class Anime extends Module {
             });
 
           if (!entry) {
-            data = await this.gqlClient.request(query, {
+            data = await this.gqlClient.request<Query>(query, {
               page: curpage,
               search: arg,
               medium: type,
             });
 
-            pageinfo = data['Page']['pageInfo'];
-            media = data['Page']['media'];
+            pageinfo = data.Page?.pageInfo;
+            media = data.Page?.media;
             pages = [];
 
             if (Array.isArray(media)) {
               media.forEach((entry, idx) => {
                 const line = `[${idx + 1}] ${
-                  entry['title']['english'] ?? entry['title']['romaji']
+                  entry?.title?.english ?? entry?.title?.romaji
                 }`;
                 pages.push(line);
               });
@@ -201,7 +207,7 @@ export class Anime extends Module {
               page += '\n[..] Previous Page';
             }
 
-            if (pageinfo['hasNextPage']) {
+            if (pageinfo?.hasNextPage) {
               page += '\n[...] Next Page';
             }
 
@@ -209,8 +215,8 @@ export class Anime extends Module {
             await pageSelect.edit(pageEmbed);
           }
         }
-      } else {
-        entry = data['Page']['media'][0];
+      } else if (data.Page?.media) {
+        entry = data.Page?.media[0];
       }
 
       return entry;
@@ -219,63 +225,67 @@ export class Anime extends Module {
     return null;
   }
 
-  private async buildMsg(msg: Discord.Message, type: string, entry: any) {
+  private async buildEmbed(
+    msg: Discord.Message,
+    type: MediaType,
+    entry: Media | null | undefined
+  ) {
     if (!entry) return;
 
-    let title = entry['title']['english'] ?? entry['title']['romaji'];
+    let title = entry.title?.english ?? entry.title?.romaji;
     let embed = new Discord.MessageEmbed()
       .setTitle(title)
-      .setURL(entry['siteUrl'])
-      .addField('Type', entry['format'], true);
+      .addField('Type', entry.format, true);
 
-    if (type == 'MANGA') {
+    if (entry.siteUrl) {
+      embed.setURL(entry.siteUrl);
+    }
+
+    if (type == MediaType.Manga) {
       embed
-        .addField('Chapters', entry['chapters'], true)
-        .addField('Volumes', entry['volumes'], true);
+        .addField('Chapters', entry.chapters, true)
+        .addField('Volumes', entry.volumes, true);
     } else {
-      embed.addField('Episodes', entry['episodes'], true);
+      embed.addField('Episodes', entry.episodes, true);
     }
 
     embed
-      .addField('Mean Score', ':star: ' + entry['meanScore'] + '/100', true)
-      .addField('Status', entry['status'], true);
+      .addField('Mean Score', ':star: ' + entry.meanScore + '/100', true)
+      .addField('Status', entry.status, true);
 
-    let sd = entry['startDate'];
-    let ed = entry['endDate'];
+    let sd = entry.startDate;
+    let ed = entry.endDate;
+
     embed.addField(
       'Start Date',
-      sd['year'] + '-' + sd['month'] + '-' + sd['day'],
+      sd?.year + '-' + sd?.month + '-' + sd?.day,
       true
     );
 
-    if (ed['year']) {
-      embed.addField(
-        'End Date',
-        ed['year'] + '-' + ed['month'] + '-' + ed['day'],
-        true
-      );
+    if (ed?.year) {
+      embed.addField('End Date', ed.year + '-' + ed.month + '-' + ed.day, true);
     }
 
-    let synopsis = stripHtml(entry['description'] as string).result;
+    let synopsis = stripHtml(entry.description as string).result;
 
     if (synopsis.length > 1024) {
       synopsis = synopsis.slice(0, 1021) + '..';
     }
 
     embed.addField('Synopsis', synopsis);
-    embed.setImage(entry['coverImage']['large']);
+    embed.setImage(entry.coverImage?.large as string);
     await msg.channel.send(embed);
   }
 
   private async anime(msg: Discord.Message, args: string[]) {
     const arg = args.join(' ');
-    const entry = await this.search(msg, 'ANIME', arg);
-    await this.buildMsg(msg, 'ANIME', entry);
+    const entry = await this.search(msg, MediaType.Anime, arg);
+    await this.buildEmbed(msg, MediaType.Anime, entry);
   }
 
   private async manga(msg: Discord.Message, args: string[]) {
     const arg = args.join(' ');
-    const entry = await this.search(msg, 'MANGA', arg);
-    await this.buildMsg(msg, 'MANGA', entry);
+    const entry = await this.search(msg, MediaType.Manga, arg);
+    await this.buildEmbed(msg, MediaType.Manga, entry);
   }
 }

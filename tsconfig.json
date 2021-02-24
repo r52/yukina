@@ -8,8 +8,7 @@
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "baseUrl": ".",
-    "lib": ["esnext"]
+    "baseUrl": "."
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "build", "dist"]
