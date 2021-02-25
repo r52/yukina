@@ -22,6 +22,15 @@ client.once('ready', () => {
   handler.loadModules();
 
   console.log('Ready!');
+
+  client.user
+    ?.setPresence({
+      activity: {
+        name: 'with senpai',
+        type: 'PLAYING',
+      },
+    })
+    .catch(console.error);
 });
 
 const token = config.get<string>('discord.token');
