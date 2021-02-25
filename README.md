@@ -19,7 +19,7 @@ yarn
 
 ```bash
 yarn build
-yarn run
+yarn start
 ```
 
 ### Dev/Test build
