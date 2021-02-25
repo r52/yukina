@@ -2,7 +2,13 @@ import Discord from 'discord.js';
 import Conf from 'conf';
 
 import { ConfStore } from 'types/store';
-import { Module } from './module';
+import {
+  CommandFunction,
+  CommandInfo,
+  createModule,
+  Module,
+  RegCmd,
+} from './module';
 import { Ping } from './modules/ping';
 import { Music } from './modules/music';
 import { Moderation } from './modules/moderation';
@@ -14,9 +20,9 @@ export class Handler {
 
   private prefix: string;
 
-  private commands = new Map<
+  private commands = new Discord.Collection<
     string,
-    (msg: Discord.Message, args: string[]) => void
+    { info: CommandInfo; fn: CommandFunction }
   >();
 
   private modules: Module[] = [];
@@ -46,34 +52,30 @@ export class Handler {
   }
 
   public loadModules() {
-    const regcmd = (
-      cmd: string,
-      fn: (msg: Discord.Message, args: string[]) => void
-    ) => {
-      this.registerCommand(cmd, fn);
+    const regcmd: RegCmd = (cmdinfo: CommandInfo, fn: CommandFunction) => {
+      this.registerCommand(cmdinfo, fn);
     };
 
     // load modules
-    this.modules.push(new Ping(regcmd, this.client, this.store));
-    this.modules.push(new Music(regcmd, this.client, this.store));
-    this.modules.push(new Moderation(regcmd, this.client, this.store));
-    this.modules.push(new Anime(regcmd, this.client, this.store));
+    this.modules.push(createModule(Ping, regcmd, this.client, this.store));
+    this.modules.push(createModule(Music, regcmd, this.client, this.store));
+    this.modules.push(
+      createModule(Moderation, regcmd, this.client, this.store)
+    );
+    this.modules.push(createModule(Anime, regcmd, this.client, this.store));
 
     console.log('All Modules loaded');
   }
 
-  public registerCommand(
-    cmd: string,
-    fn: (msg: Discord.Message, args: string[]) => void
-  ) {
-    if (this.commands.has(cmd)) {
-      console.error('Command', cmd, 'already exists.');
+  public registerCommand(cmdinfo: CommandInfo, fn: CommandFunction) {
+    if (this.commands.has(cmdinfo.name)) {
+      console.error('Command', cmdinfo.name, 'already exists.');
       return;
     }
 
-    this.commands.set(cmd, fn);
+    this.commands.set(cmdinfo.name, { info: cmdinfo, fn: fn });
 
-    console.log('Command', cmd, 'registered.');
+    console.log('Command', cmdinfo.name, 'registered.');
   }
 
   private handleMessage(msg: Discord.Message) {
@@ -82,11 +84,41 @@ export class Handler {
     const args = msg.content.slice(this.prefix.length).trim().split(/ +/);
     const cmd = args.shift();
 
-    if (cmd && this.commands.has(cmd)) {
-      const fn = this.commands.get(cmd);
+    if (cmd) {
+      // handle aliases
+      const command =
+        this.commands.get(cmd) ||
+        this.commands.find((c) => {
+          if (c.info.aliases) {
+            return c.info.aliases.includes(cmd);
+          }
 
-      if (fn) {
-        fn(msg, args);
+          return false;
+        });
+
+      if (command) {
+        // check permissions
+        if (command.info.permissions && msg.channel.type == 'text') {
+          const authorPerms = msg.channel.permissionsFor(msg.author);
+
+          let hasPerms = false;
+
+          if (authorPerms) {
+            if (Array.isArray(command.info.permissions)) {
+              hasPerms = command.info.permissions.every((p) => {
+                return authorPerms.has(p);
+              });
+            } else {
+              hasPerms = authorPerms.has(command.info.permissions);
+            }
+          }
+
+          if (!hasPerms) {
+            return;
+          }
+        }
+
+        command.fn(msg, args);
       }
     }
   }

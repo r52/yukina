@@ -80,12 +80,10 @@ const query = gql`
   }
 `;
 
-export class Anime extends Module {
+export class Anime implements Module {
   private gqlClient: GraphQLClient | null = null;
 
   constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
-    super(regCmd, client, store);
-
     const token = config.get<string>('anilist.token');
 
     if (token) {
@@ -97,22 +95,34 @@ export class Anime extends Module {
         },
       });
 
+      regCmd(
+        {
+          name: 'anime',
+          description: 'Searches anilist.co for the specified anime',
+          permissions: 'SEND_MESSAGES',
+        },
+        async (msg: Discord.Message, args: string[]) => {
+          await this.anime(msg, args);
+        }
+      );
+
+      regCmd(
+        {
+          name: 'manga',
+          description: 'Searches anilist.co for the specified manga',
+          permissions: 'SEND_MESSAGES',
+        },
+        async (msg: Discord.Message, args: string[]) => {
+          await this.manga(msg, args);
+        }
+      );
+
       console.log('Anilist gql client initialized');
     } else {
       console.log('Anilist gql client inactive: no token configured');
     }
 
     console.log('Anime module loaded');
-  }
-
-  load(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>): void {
-    regCmd('anime', async (msg: Discord.Message, args: string[]) => {
-      await this.anime(msg, args);
-    });
-
-    regCmd('manga', async (msg: Discord.Message, args: string[]) => {
-      await this.manga(msg, args);
-    });
   }
 
   private buildSelector(

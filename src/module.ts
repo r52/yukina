@@ -1,21 +1,29 @@
-import Discord from 'discord.js';
+import Discord, { PermissionString } from 'discord.js';
 import Conf from 'conf';
 
 import { ConfStore } from 'types/store';
 
-export type RegCmd = (
-  cmd: string,
-  fn: (msg: Discord.Message, args: string[]) => void
-) => void;
+export type CommandInfo = {
+  name: string;
+  description: string;
+  aliases?: string[];
+  permissions?: PermissionString | PermissionString[];
+};
 
-export abstract class Module {
-  constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
-    this.load(regCmd, client, store);
-  }
+export type CommandFunction = (msg: Discord.Message, args: string[]) => void;
+export type RegCmd = (cmdinfo: CommandInfo, fn: CommandFunction) => void;
 
-  abstract load(
-    regCmd: RegCmd,
-    client: Discord.Client,
-    store: Conf<ConfStore>
-  ): void;
+export interface ModuleConstructor {
+  new (regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>): Module;
+}
+
+export interface Module {}
+
+export function createModule(
+  ctor: ModuleConstructor,
+  regCmd: RegCmd,
+  client: Discord.Client,
+  store: Conf<ConfStore>
+): Module {
+  return new ctor(regCmd, client, store);
 }

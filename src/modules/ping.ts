@@ -4,16 +4,15 @@ import Conf from 'conf';
 import { Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 
-export class Ping extends Module {
+export class Ping implements Module {
   constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
-    super(regCmd, client, store);
+    regCmd(
+      { name: 'ping', description: 'Pong!' },
+      async (msg: Discord.Message, args: string[]) => {
+        await msg.channel.send('Pong');
+      }
+    );
 
     console.log('Ping module loaded');
-  }
-
-  load(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>): void {
-    regCmd('ping', async (msg: Discord.Message, args: string[]) => {
-      await msg.channel.send('Pong');
-    });
   }
 }

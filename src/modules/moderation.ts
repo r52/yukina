@@ -4,17 +4,20 @@ import Conf from 'conf';
 import { Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 
-export class Moderation extends Module {
+export class Moderation implements Module {
   constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
-    super(regCmd, client, store);
+    regCmd(
+      {
+        name: 'prune',
+        description: 'Prunes the last # messages',
+        permissions: 'MANAGE_MESSAGES',
+      },
+      async (msg: Discord.Message, args: string[]) => {
+        await this.prune(msg, args);
+      }
+    );
 
     console.log('Moderation module loaded');
-  }
-
-  load(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>): void {
-    regCmd('prune', async (msg: Discord.Message, args: string[]) => {
-      await this.prune(msg, args);
-    });
   }
 
   private async prune(msg: Discord.Message, args: string[]) {

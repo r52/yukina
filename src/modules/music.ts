@@ -11,7 +11,7 @@ type QueueEntry = {
   msg: Discord.Message;
 };
 
-export class Music extends Module {
+export class Music implements Module {
   private connection: Discord.VoiceConnection | null = null;
   private dispatcher: Discord.StreamDispatcher | null = null;
   private timeout: NodeJS.Timeout | null = null;
@@ -19,46 +19,91 @@ export class Music extends Module {
   private queue: QueueEntry[] = [];
 
   constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
-    super(regCmd, client, store);
-
-    console.log('Music module loaded');
-  }
-
-  load(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>): void {
     // join
-    regCmd('join', async (msg: Discord.Message, args: string[]) => {
-      await this.join(msg, args);
-    });
+    regCmd(
+      {
+        name: 'join',
+        description: 'Joins the voice channel',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+      async (msg: Discord.Message, args: string[]) => {
+        await this.join(msg, args);
+      }
+    );
 
     // leave
-    regCmd('leave', async (msg: Discord.Message, args: string[]) => {
-      await this.leave(msg, args);
-    });
+    regCmd(
+      {
+        name: 'leave',
+        description: 'Leaves the voice channel',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+      async (msg: Discord.Message, args: string[]) => {
+        await this.leave(msg, args);
+      }
+    );
 
     // play
-    regCmd('play', async (msg: Discord.Message, args: string[]) => {
-      await this.play(msg, args);
-    });
+    regCmd(
+      {
+        name: 'play',
+        description: 'Plays a track from Youtube',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+      async (msg: Discord.Message, args: string[]) => {
+        await this.play(msg, args);
+      }
+    );
 
     // stop
-    regCmd('stop', async (msg: Discord.Message, args: string[]) => {
-      await this.stop(msg, args);
-    });
+    regCmd(
+      {
+        name: 'stop',
+        description: 'Stops currently playing tracks',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+      async (msg: Discord.Message, args: string[]) => {
+        await this.stop(msg, args);
+      }
+    );
 
     // skip
-    regCmd('skip', async (msg: Discord.Message, args: string[]) => {
-      await this.skip(msg, args);
-    });
+    regCmd(
+      {
+        name: 'skip',
+        description: 'Skips currently playing track',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+      async (msg: Discord.Message, args: string[]) => {
+        await this.skip(msg, args);
+      }
+    );
 
     // clear queue
-    regCmd('clearqueue', async (msg: Discord.Message, args: string[]) => {
-      await this.clear(msg, args);
-    });
+    regCmd(
+      {
+        name: 'clearqueue',
+        description: 'Clears the track queue',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+      async (msg: Discord.Message, args: string[]) => {
+        await this.clear(msg, args);
+      }
+    );
 
-    // clear queue
-    regCmd('checkqueue', async (msg: Discord.Message, args: string[]) => {
-      await this.checkqueue(msg, args);
-    });
+    // check queue
+    regCmd(
+      {
+        name: 'checkqueue',
+        description: 'List all tracks in the queue',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+      async (msg: Discord.Message, args: string[]) => {
+        await this.checkqueue(msg, args);
+      }
+    );
+
+    console.log('Music module loaded');
   }
 
   private async timeoutCheck() {
