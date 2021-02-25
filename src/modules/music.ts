@@ -119,13 +119,16 @@ export class Music implements Module {
   }
 
   private async search(key: string) {
-    const results = await ytsr(key, { limit: 10 });
-    const first = results.items.find((element) => {
-      return element.type == 'video' && element.url;
-    });
+    const filters = await ytsr.getFilters(key);
+    const f = filters.get('Type')?.get('Video');
 
-    if (first && first.type == 'video') {
-      return first.url;
+    if (f && f.url) {
+      const results = await ytsr(f.url, { limit: 1 });
+      const first = results.items[0];
+
+      if (first && first.type == 'video') {
+        return first.url;
+      }
     }
 
     return null;
