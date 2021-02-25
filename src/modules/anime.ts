@@ -1,4 +1,4 @@
-import Discord from 'discord.js';
+import Discord, { User } from 'discord.js';
 import Conf from 'conf';
 import config from 'config';
 import { stripHtml } from 'string-strip-html';
@@ -7,6 +7,22 @@ import { GraphQLClient, gql } from 'graphql-request';
 import { Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 import { Media, MediaType, Query } from '../types/anilist';
+
+const emoteUCTable = [
+  '0️⃣',
+  '1️⃣',
+  '2️⃣',
+  '3️⃣',
+  '4️⃣',
+  '5️⃣',
+  '6️⃣',
+  '7️⃣',
+  '8️⃣',
+  '9️⃣',
+  '🔟',
+  '⬅️',
+  '➡️',
+];
 
 const query = gql`
   query($page: Int!, $search: String!, $medium: MediaType!) {
@@ -99,6 +115,46 @@ export class Anime extends Module {
     });
   }
 
+  private buildSelector(
+    medialist: Media[],
+    embed: Discord.MessageEmbed,
+    isFirstPage: boolean,
+    hasNextPage: boolean
+  ) {
+    const sec1: string[] = [],
+      sec2: string[] = [];
+
+    medialist.forEach((entry, idx) => {
+      const line = `${emoteUCTable[idx + 1]} ${
+        entry?.title?.english ?? entry?.title?.romaji
+      }`;
+
+      if (idx < 5) {
+        sec1.push(line);
+      } else {
+        sec2.push(line);
+      }
+    });
+
+    let pec1 = sec1.join('\n');
+    let pec2 = sec2.join('\n');
+
+    if (!isFirstPage) {
+      pec1 += '\n[..] Previous Page';
+    }
+
+    if (hasNextPage) {
+      pec2 += '\n[...] Next Page';
+    }
+
+    embed.fields.length = 0;
+    embed.addField('Select:', pec1, true);
+
+    if (pec2) {
+      embed.addField('cont', pec2, true);
+    }
+  }
+
   private async search(msg: Discord.Message, type: MediaType, arg: string) {
     if (!msg.guild) return;
     if (!arg) return;
@@ -128,27 +184,18 @@ export class Anime extends Module {
       }
 
       if (pageinfo.total && pageinfo.total > 1) {
-        let media = data.Page?.media;
-        let pages: string[] = [];
+        let media = data.Page?.media as Media[];
 
-        if (Array.isArray(media)) {
-          media.forEach((entry, idx) => {
-            const line = `[${idx + 1}] ${
-              entry?.title?.english ?? entry?.title?.romaji
-            }`;
-            pages.push(line);
-          });
-        }
+        let pageEmbed = new Discord.MessageEmbed().setTitle(
+          'Which one are you talking about?'
+        );
 
-        let page = pages.join('\n');
-
-        if (pageinfo['hasNextPage']) {
-          page += '\n[...] Next Page';
-        }
-
-        let pageEmbed = new Discord.MessageEmbed()
-          .setTitle('Which one are you talking about?')
-          .setDescription(page);
+        this.buildSelector(
+          media,
+          pageEmbed,
+          true,
+          pageinfo.hasNextPage as boolean
+        );
 
         const pageSelect = await msg.channel.send(pageEmbed);
 
@@ -163,7 +210,7 @@ export class Anime extends Module {
           await msg.channel
             .awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
             .then(async (replies) => {
-              if (media && replies.size) {
+              if (replies.size) {
                 const reply = replies.first() as Discord.Message;
 
                 if (reply.content == '..') {
@@ -189,29 +236,15 @@ export class Anime extends Module {
             });
 
             pageinfo = data.Page?.pageInfo;
-            media = data.Page?.media;
-            pages = [];
+            media = data.Page?.media as Media[];
 
-            if (Array.isArray(media)) {
-              media.forEach((entry, idx) => {
-                const line = `[${idx + 1}] ${
-                  entry?.title?.english ?? entry?.title?.romaji
-                }`;
-                pages.push(line);
-              });
-            }
+            this.buildSelector(
+              media,
+              pageEmbed,
+              curpage == 0,
+              pageinfo?.hasNextPage as boolean
+            );
 
-            let page = pages.join('\n');
-
-            if (curpage > 0) {
-              page += '\n[..] Previous Page';
-            }
-
-            if (pageinfo?.hasNextPage) {
-              page += '\n[...] Next Page';
-            }
-
-            pageEmbed.setDescription(page);
             await pageSelect.edit(pageEmbed);
           }
         }
