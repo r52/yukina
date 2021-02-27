@@ -4,7 +4,7 @@ import config from 'config';
 import { stripHtml } from 'string-strip-html';
 import { GraphQLClient, gql } from 'graphql-request';
 
-import { Module, RegCmd } from '../module';
+import { CommandInfo, Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 import { Media, MediaType, Query } from '../types/anilist';
 
@@ -81,7 +81,30 @@ const query = gql`
 `;
 
 export class Anime implements Module {
+  name = 'Anime';
+
   private gqlClient: GraphQLClient | null = null;
+
+  private commands = new Discord.Collection<string, CommandInfo>([
+    [
+      'anime',
+      {
+        name: 'anime',
+        description: 'Searches anilist.co for the specified anime',
+        permissions: 'SEND_MESSAGES',
+        usage: '<name of the anime to search for>',
+      },
+    ],
+    [
+      'manga',
+      {
+        name: 'manga',
+        description: 'Searches anilist.co for the specified manga',
+        permissions: 'SEND_MESSAGES',
+        usage: '<name of the manga to search for>',
+      },
+    ],
+  ]);
 
   constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
     const token = config.get<string>('anilist.token');
@@ -96,22 +119,14 @@ export class Anime implements Module {
       });
 
       regCmd(
-        {
-          name: 'anime',
-          description: 'Searches anilist.co for the specified anime',
-          permissions: 'SEND_MESSAGES',
-        },
+        this.commands.get('anime') as CommandInfo,
         async (msg: Discord.Message, args: string[]) => {
           await this.anime(msg, args);
         }
       );
 
       regCmd(
-        {
-          name: 'manga',
-          description: 'Searches anilist.co for the specified manga',
-          permissions: 'SEND_MESSAGES',
-        },
+        this.commands.get('manga') as CommandInfo,
         async (msg: Discord.Message, args: string[]) => {
           await this.manga(msg, args);
         }
@@ -122,7 +137,7 @@ export class Anime implements Module {
       console.log('Anilist gql client inactive: no token configured');
     }
 
-    console.log('Anime module loaded');
+    console.log(`${this.name} module loaded`);
   }
 
   private buildSelector(
@@ -196,9 +211,9 @@ export class Anime implements Module {
       if (pageinfo.total && pageinfo.total > 1) {
         let media = data.Page?.media as Media[];
 
-        let pageEmbed = new Discord.MessageEmbed().setTitle(
-          'Which one are you talking about?'
-        );
+        let pageEmbed = new Discord.MessageEmbed()
+          .setTitle('Which one are you talking about?')
+          .setColor(0x2ecc71);
 
         this.buildSelector(
           media,
@@ -278,7 +293,8 @@ export class Anime implements Module {
     let title = entry.title?.english ?? entry.title?.romaji;
     let embed = new Discord.MessageEmbed()
       .setTitle(title)
-      .addField('Type', entry.format, true);
+      .addField('Type', entry.format, true)
+      .setColor(0x2ecc71);
 
     if (entry.siteUrl) {
       embed.setURL(entry.siteUrl);
@@ -315,8 +331,10 @@ export class Anime implements Module {
       synopsis = synopsis.slice(0, 1021) + '..';
     }
 
-    embed.addField('Synopsis', synopsis);
-    embed.setImage(entry.coverImage?.large as string);
+    embed
+      .addField('Synopsis', synopsis)
+      .setImage(entry.coverImage?.large as string);
+
     await msg.channel.send(embed);
   }
 
@@ -330,5 +348,17 @@ export class Anime implements Module {
     const arg = args.join(' ');
     const entry = await this.search(msg, MediaType.Manga, arg);
     await this.buildEmbed(msg, MediaType.Manga, entry);
+  }
+
+  public getHelp(prefix: string): [string, string] {
+    let cmds: string[] = [];
+
+    this.commands.forEach((cmd) => {
+      cmds.push(`${prefix}${cmd.name}`);
+    });
+
+    const desc = cmds.join('\n');
+
+    return [this.name, desc];
   }
 }

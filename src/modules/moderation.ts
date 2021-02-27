@@ -1,23 +1,33 @@
 import Discord from 'discord.js';
 import Conf from 'conf';
 
-import { Module, RegCmd } from '../module';
+import { CommandInfo, Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 
 export class Moderation implements Module {
-  constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
-    regCmd(
+  name = 'Moderation';
+
+  private commands = new Discord.Collection<string, CommandInfo>([
+    [
+      'prune',
       {
         name: 'prune',
-        description: 'Prunes the last # messages',
+        description: 'Prunes the last # messages in a channel',
         permissions: 'MANAGE_MESSAGES',
+        usage: '<# of messages to prune>',
       },
+    ],
+  ]);
+
+  constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
+    regCmd(
+      this.commands.get('prune') as CommandInfo,
       async (msg: Discord.Message, args: string[]) => {
         await this.prune(msg, args);
       }
     );
 
-    console.log('Moderation module loaded');
+    console.log(`${this.name} module loaded`);
   }
 
   private async prune(msg: Discord.Message, args: string[]) {
@@ -37,5 +47,17 @@ export class Moderation implements Module {
         }
       });
     }
+  }
+
+  public getHelp(prefix: string): [string, string] {
+    let cmds: string[] = [];
+
+    this.commands.forEach((cmd) => {
+      cmds.push(`${prefix}${cmd.name}`);
+    });
+
+    const desc = cmds.join('\n');
+
+    return [this.name, desc];
   }
 }

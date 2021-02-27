@@ -5,6 +5,8 @@ import { Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 
 export class Ping implements Module {
+  name = 'Ping';
+
   constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
     regCmd(
       { name: 'ping', description: 'Pong!' },
@@ -13,6 +15,11 @@ export class Ping implements Module {
       }
     );
 
-    console.log('Ping module loaded');
+    console.log(`${this.name} module loaded`);
+  }
+
+  public getHelp(prefix: string): [string, string] {
+    const desc = `${prefix}ping`;
+    return [this.name, desc];
   }
 }

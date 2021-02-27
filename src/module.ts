@@ -6,6 +6,7 @@ import { ConfStore } from 'types/store';
 export type CommandInfo = {
   name: string;
   description: string;
+  usage?: string;
   aliases?: string[];
   permissions?: PermissionString | PermissionString[];
 };
@@ -17,7 +18,11 @@ export interface ModuleConstructor {
   new (regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>): Module;
 }
 
-export interface Module {}
+export interface Module {
+  name: string;
+
+  getHelp(prefix: string): [string, string];
+}
 
 export function createModule(
   ctor: ModuleConstructor,

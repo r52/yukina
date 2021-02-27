@@ -65,6 +65,13 @@ export class Handler {
     this.modules.push(createModule(Anime, regcmd, this.client, this.store));
 
     console.log('All Modules loaded');
+
+    this.registerCommand(
+      { name: 'help', description: 'Displays this/usage', usage: '<command>' },
+      (msg, args) => {
+        this.getHelp(msg, args);
+      }
+    );
   }
 
   public registerCommand(cmdinfo: CommandInfo, fn: CommandFunction) {
@@ -120,6 +127,69 @@ export class Handler {
 
         command.fn(msg, args);
       }
+    }
+  }
+
+  private async getHelp(msg: Discord.Message, args: string[]) {
+    const arg = args[0];
+
+    if (!arg) {
+      // generic help
+      const embed = new Discord.MessageEmbed()
+        .setTitle('Yukina help')
+        .setColor(0x800080);
+
+      this.modules.forEach((module) => {
+        const [modname, help] = module.getHelp(this.prefix);
+        embed.addField(modname, help, true);
+      });
+
+      embed.setDescription(`Use ${this.prefix}help <command> for more info`);
+
+      await msg.channel.send(embed);
+
+      return;
+    }
+
+    // specific command
+    const command =
+      this.commands.get(arg) ||
+      this.commands.find((c) => {
+        if (c.info.aliases) {
+          return c.info.aliases.includes(arg);
+        }
+
+        return false;
+      });
+
+    if (command) {
+      const embed = new Discord.MessageEmbed()
+        .setTitle(`${this.prefix}${command.info.name}`)
+        .setColor(0x800080);
+
+      if (command.info.permissions) {
+        embed.addField(
+          'Permissions Required',
+          command.info.permissions.toString(),
+          true
+        );
+      }
+
+      if (command.info.aliases) {
+        embed.addField('Aliases', command.info.aliases.join(', '), true);
+      }
+
+      if (command.info.usage) {
+        embed.addField(
+          'Usage',
+          `${this.prefix}${command.info.name} ${command.info.usage}`,
+          true
+        );
+      }
+
+      embed.setDescription(command.info.description);
+
+      await msg.channel.send(embed);
     }
   }
 }

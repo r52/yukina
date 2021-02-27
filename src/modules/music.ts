@@ -3,7 +3,7 @@ import Conf from 'conf';
 import ytdl from 'ytdl-core';
 import ytsr from 'ytsr';
 
-import { Module, RegCmd } from '../module';
+import { CommandInfo, Module, RegCmd } from '../module';
 import { ConfStore } from 'types/store';
 
 type QueueEntry = {
@@ -12,20 +12,78 @@ type QueueEntry = {
 };
 
 export class Music implements Module {
+  name = 'Music';
+
   private connection: Discord.VoiceConnection | null = null;
   private dispatcher: Discord.StreamDispatcher | null = null;
   private timeout: NodeJS.Timeout | null = null;
 
   private queue: QueueEntry[] = [];
 
-  constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
-    // join
-    regCmd(
+  private commands = new Discord.Collection<string, CommandInfo>([
+    [
+      'join',
       {
         name: 'join',
         description: 'Joins the voice channel',
         permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
       },
+    ],
+    [
+      'leave',
+      {
+        name: 'leave',
+        description: 'Leaves the voice channel',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+    ],
+    [
+      'play',
+      {
+        name: 'play',
+        description: 'Plays a track from Youtube',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+        usage: '<YouTube URL or search term>',
+      },
+    ],
+    [
+      'stop',
+      {
+        name: 'stop',
+        description: 'Stops currently playing tracks',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+    ],
+    [
+      'skip',
+      {
+        name: 'skip',
+        description: 'Skips currently playing track',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+    ],
+    [
+      'clearqueue',
+      {
+        name: 'clearqueue',
+        description: 'Clears the track queue',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK', 'MANAGE_MESSAGES'],
+      },
+    ],
+    [
+      'checkqueue',
+      {
+        name: 'checkqueue',
+        description: 'List all tracks currently in the queue',
+        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
+      },
+    ],
+  ]);
+
+  constructor(regCmd: RegCmd, client: Discord.Client, store: Conf<ConfStore>) {
+    // join
+    regCmd(
+      this.commands.get('join') as CommandInfo,
       async (msg: Discord.Message, args: string[]) => {
         await this.join(msg, args);
       }
@@ -33,11 +91,7 @@ export class Music implements Module {
 
     // leave
     regCmd(
-      {
-        name: 'leave',
-        description: 'Leaves the voice channel',
-        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
-      },
+      this.commands.get('leave') as CommandInfo,
       async (msg: Discord.Message, args: string[]) => {
         await this.leave(msg, args);
       }
@@ -45,11 +99,7 @@ export class Music implements Module {
 
     // play
     regCmd(
-      {
-        name: 'play',
-        description: 'Plays a track from Youtube',
-        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
-      },
+      this.commands.get('play') as CommandInfo,
       async (msg: Discord.Message, args: string[]) => {
         await this.play(msg, args);
       }
@@ -57,11 +107,7 @@ export class Music implements Module {
 
     // stop
     regCmd(
-      {
-        name: 'stop',
-        description: 'Stops currently playing tracks',
-        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
-      },
+      this.commands.get('stop') as CommandInfo,
       async (msg: Discord.Message, args: string[]) => {
         await this.stop(msg, args);
       }
@@ -69,41 +115,29 @@ export class Music implements Module {
 
     // skip
     regCmd(
-      {
-        name: 'skip',
-        description: 'Skips currently playing track',
-        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
-      },
+      this.commands.get('skip') as CommandInfo,
       async (msg: Discord.Message, args: string[]) => {
         await this.skip(msg, args);
       }
     );
 
-    // clear queue
+    // clearqueue
     regCmd(
-      {
-        name: 'clearqueue',
-        description: 'Clears the track queue',
-        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
-      },
+      this.commands.get('clearqueue') as CommandInfo,
       async (msg: Discord.Message, args: string[]) => {
         await this.clear(msg, args);
       }
     );
 
-    // check queue
+    // checkqueue
     regCmd(
-      {
-        name: 'checkqueue',
-        description: 'List all tracks in the queue',
-        permissions: ['SEND_MESSAGES', 'CONNECT', 'SPEAK'],
-      },
+      this.commands.get('checkqueue') as CommandInfo,
       async (msg: Discord.Message, args: string[]) => {
         await this.checkqueue(msg, args);
       }
     );
 
-    console.log('Music module loaded');
+    console.log(`${this.name} module loaded`);
   }
 
   private async timeoutCheck() {
@@ -386,5 +420,17 @@ export class Music implements Module {
 
       await msg.channel.send(embed);
     }
+  }
+
+  public getHelp(prefix: string): [string, string] {
+    let cmds: string[] = [];
+
+    this.commands.forEach((cmd) => {
+      cmds.push(`${prefix}${cmd.name}`);
+    });
+
+    const desc = cmds.join('\n');
+
+    return [this.name, desc];
   }
 }
